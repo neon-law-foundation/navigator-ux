@@ -1,0 +1,38 @@
+/* Summons Defense — layer two.
+ *
+ * Self-hosted Libre Franklin at 400 and 700, SIL OFL 1.1, from the
+ * gallery's fontsource package.
+ */
+
+@import '@fontsource/libre-franklin/latin-400.css';
+@import '@fontsource/libre-franklin/latin-700.css';
+
+:root:root {
+  --nav-font-family: 'Libre Franklin', ui-sans-serif, system-ui, sans-serif;
+
+  --nav-color-primary: #2f4550;
+  --nav-color-primary-hover: #23343c;
+  --nav-color-primary-active: #1a262c;
+  --nav-color-on-primary: #ffffff;
+  --nav-color-on-brand: #ffffff;
+  --nav-color-link: #2f4550;
+  --nav-color-link-hover: #1a262c;
+  --nav-color-surface-subtle: #eef4f6;
+  --nav-color-focus: #2f4550;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:root {
+    /* #2f4550 on #071619 is 1.64:1. Primary climbs to #7ea2b4 (6.78:1) and
+       its ink drops to #0d1117 (6.95:1 on #7ea2b4). */
+    --nav-color-primary: #7ea2b4;
+    --nav-color-primary-hover: #92b0bf;
+    --nav-color-primary-active: #a5beca;
+    --nav-color-on-primary: #0d1117;
+    --nav-color-on-brand: #0d1117;
+    --nav-color-link: #7ea2b4;
+    --nav-color-link-hover: #92b0bf;
+    --nav-color-surface-subtle: #16252d;
+    --nav-color-focus: #7ea2b4;
+  }
+}

@@ -364,8 +364,8 @@ the library the way a hand-written specimen page does.
 
 It also carries the one control an app does not: a **brand-layer switch**. That is not a theme toggle
 — the color scheme still follows the OS and has no control anywhere. It attaches a sheet from
-`gallery/brands/` (Neon Law is the library with none; DeleteYourData.com wears Plus Jakarta Sans;
-Lawyer Shook wears Tinos and the legal-pad ground). The violet file
+`gallery/brands/`. Neon Law is the library with no extra sheet. The other sheets are the house
+brands, and `/design` is where they are shown. The violet file
 `gallery/brand-example-tokens.css` stays the copy-paste template. The same components re-tone, and
 no component is touched.
 

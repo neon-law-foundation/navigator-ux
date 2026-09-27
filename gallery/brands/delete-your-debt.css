@@ -1,0 +1,38 @@
+/* DeleteYourDebt.com — layer two.
+ *
+ * Self-hosted Public Sans at 400 and 700, SIL OFL 1.1, from the gallery's
+ * fontsource package.
+ */
+
+@import '@fontsource/public-sans/latin-400.css';
+@import '@fontsource/public-sans/latin-700.css';
+
+:root:root {
+  --nav-font-family: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+
+  --nav-color-primary: #1f6f4a;
+  --nav-color-primary-hover: #195b3d;
+  --nav-color-primary-active: #14472f;
+  --nav-color-on-primary: #ffffff;
+  --nav-color-on-brand: #ffffff;
+  --nav-color-link: #1f6f4a;
+  --nav-color-link-hover: #14472f;
+  --nav-color-surface-subtle: #eef9f4;
+  --nav-color-focus: #1f6f4a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:root {
+    /* #1f6f4a on #071619 is 2.29:1. Primary climbs to #32b377 (6.90:1) and
+       its ink drops to #0d1117 (7.07:1 on #32b377). */
+    --nav-color-primary: #32b377;
+    --nav-color-primary-hover: #3bc887;
+    --nav-color-primary-active: #53cf95;
+    --nav-color-on-primary: #0d1117;
+    --nav-color-on-brand: #0d1117;
+    --nav-color-link: #32b377;
+    --nav-color-link-hover: #3bc887;
+    --nav-color-surface-subtle: #113122;
+    --nav-color-focus: #32b377;
+  }
+}

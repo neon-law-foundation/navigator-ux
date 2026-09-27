@@ -94,6 +94,19 @@ describe('Table', () => {
     )
   })
 
+  it('marks a full-width table on the wrap', () => {
+    const { container } = render(
+      <Table span="full" caption="Wide fees">
+        <TableBody>
+          <TableRow>
+            <TableCell>Filing</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>,
+    )
+    expect(container.querySelector('.nav-table-wrap--full')).toBeInTheDocument()
+  })
+
   it('marks the selected row so a stylesheet can reach it', () => {
     render(
       <Table>

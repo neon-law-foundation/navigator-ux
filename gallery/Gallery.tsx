@@ -53,10 +53,13 @@ import {
 } from '../src/index'
 import { CFO, CLIENT, DEFENDANT_SHORT, LAWYER } from '../fixtures/matter.mjs'
 import { MOTION_SECTIONS, RECORD_CITATIONS } from './outline-specimen'
+import { BrandMark } from './brand-mark'
+import { navigatorBrandLinks } from './navigator-brands'
+import { GALLERY_BRANDS } from './brands'
 import { GalleryFrame } from './site-frame'
 import { ComponentPages, SectionGroup } from './component-nav'
 import { useSection } from './sections'
-import { readComponentId, readGalleryLocation } from './routes'
+import { readBrandId, readComponentId, readGalleryLocation } from './routes'
 
 /* ------------------------------------------------------------------ shell -- */
 
@@ -179,6 +182,8 @@ const NAV_LINKS = [
 
 export function Gallery() {
   const [confirming, setConfirming] = useState(false)
+  const brandId = readBrandId()
+  const brand = GALLERY_BRANDS.find((entry) => entry.id === brandId)
   if (readGalleryLocation().view !== 'components') return <Showcase />
 
   return (
@@ -511,7 +516,7 @@ export function Gallery() {
               header={
                 <NavigatorNavbar
                   brand="Navigator"
-                  logo={<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="currentColor" /></svg>}
+                  logo={brand ? <BrandMark brand={brand} /> : undefined}
                   destinations={[
                     { label: 'Matters', href: '#matters', current: true },
                     { label: 'People', href: '#people' },
@@ -523,10 +528,7 @@ export function Gallery() {
               footer={
                 <NavigatorFooter
                   legal="© 2026 Shook Law PLLC"
-                  brands={[
-                    { label: 'Daybridge Divorce Law', current: true },
-                    { label: 'Neon Law', href: '#neon-law' },
-                  ]}
+                  brands={navigatorBrandLinks(brandId)}
                   links={[{ label: 'Support', href: '#support' }]}
                   release="v0.5.0"
                 />

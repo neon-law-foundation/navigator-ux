@@ -28,6 +28,13 @@ const columns: DataColumn<Person>[] = [
 const sortHref = (key: string, direction: string) => `?sort=${key}&dir=${direction}`
 
 describe('DataTable', () => {
+  it('marks a full-width table on the wrap', () => {
+    const { container } = render(
+      <DataTable columns={columns} rows={people} rowKey={(row) => row.id} span="full" />,
+    )
+    expect(container.querySelector('.nav-table-wrap--full')).toBeInTheDocument()
+  })
+
   it('renders a row per record and a cell per column', () => {
     render(<DataTable columns={columns} rows={people} rowKey={(row) => row.id} />)
     // Two records plus the header row.

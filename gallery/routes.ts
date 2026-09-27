@@ -7,6 +7,7 @@
  *   /pages                         sample-page index
  *   /pages/<id>                    one sample page
  *   /councils                      the two councils
+ *   /design                        house brands, and table/form widths
  *   /neon                          public-site specimen (home)
  *   /neon/<id>                     a public-site page
  *   ?brand=<id>                    brand layer (omitted for Neon Law)
@@ -20,7 +21,7 @@
 
 import { DEFAULT_BRAND_ID, isGalleryBrandId, type GalleryBrandId } from './brands'
 
-export type GalleryView = 'components' | 'home' | 'councils' | 'page' | 'neon'
+export type GalleryView = 'components' | 'home' | 'councils' | 'page' | 'neon' | 'design'
 
 export interface GalleryLocation {
   view: GalleryView
@@ -109,6 +110,9 @@ export function parseGalleryLocation(pathname: string, search: string, base: str
   if (head === 'councils') {
     return { view: 'councils', componentId: LANDING_COMPONENT, pageId: null, sku: null, brand }
   }
+  if (head === 'design') {
+    return { view: 'design', componentId: LANDING_COMPONENT, pageId: null, sku: null, brand }
+  }
   if (head === 'neon') {
     return {
       view: 'neon',
@@ -151,6 +155,8 @@ export function formatGalleryHref(location: GalleryLocation, base: string): stri
     path = `/pages/${encodeURIComponent(location.pageId)}`
   } else if (location.view === 'councils') {
     path = '/councils'
+  } else if (location.view === 'design') {
+    path = '/design'
   } else if (location.view === 'neon') {
     path = location.pageId && location.pageId !== 'home' ? `/neon/${encodeURIComponent(location.pageId)}` : '/'
   }
@@ -184,7 +190,11 @@ export function componentsHref() {
   return hrefFor({ view: 'components', componentId: LANDING_COMPONENT, pageId: null, sku: null })
 }
 
-export function pageHref(view: Exclude<GalleryView, 'components' | 'neon'>, id?: string) {
+export function designHref() {
+  return hrefFor({ view: 'design', pageId: null, componentId: LANDING_COMPONENT, sku: null })
+}
+
+export function pageHref(view: Exclude<GalleryView, 'components' | 'neon' | 'design'>, id?: string) {
   if (view === 'page' && id) {
     return hrefFor({ view: 'page', pageId: id, componentId: LANDING_COMPONENT, sku: null })
   }

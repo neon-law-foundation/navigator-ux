@@ -1,0 +1,26 @@
+/* Every house face, so /design can show them together.
+ *
+ * A brand sheet still imports its own face: copying that file into an app
+ * does not depend on this one. Source Serif 4 is the library face and is
+ * loaded with the rest of the stylesheet. Pirata One has no 700 file.
+ */
+
+@import '@fontsource/mukta/latin-400.css';
+@import '@fontsource/mukta/latin-700.css';
+@import '@fontsource/dm-sans/latin-400.css';
+@import '@fontsource/dm-sans/latin-700.css';
+@import '@fontsource/barlow-condensed/latin-400.css';
+@import '@fontsource/barlow-condensed/latin-700.css';
+@import '@fontsource/public-sans/latin-400.css';
+@import '@fontsource/public-sans/latin-700.css';
+@import '@fontsource/source-sans-3/latin-400.css';
+@import '@fontsource/source-sans-3/latin-700.css';
+@import '@fontsource/libre-franklin/latin-400.css';
+@import '@fontsource/libre-franklin/latin-700.css';
+@import '@fontsource/eb-garamond/latin-400.css';
+@import '@fontsource/eb-garamond/latin-700.css';
+@import '@fontsource/pirata-one/latin-400.css';
+@import '@fontsource/plus-jakarta-sans/latin-400.css';
+@import '@fontsource/plus-jakarta-sans/latin-700.css';
+@import '@fontsource/tinos/latin-400.css';
+@import '@fontsource/tinos/latin-700.css';

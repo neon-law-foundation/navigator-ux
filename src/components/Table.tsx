@@ -15,6 +15,8 @@ import type { ReactNode, TableHTMLAttributes } from 'react'
 export interface TableProps extends TableHTMLAttributes<HTMLTableElement> {
   /** Describes the table for a screen reader. Rendered visibly as a caption. */
   caption?: ReactNode
+  /** Fill the band the table sits in, instead of a nested measure. */
+  span?: 'full'
   children: ReactNode
 }
 
@@ -25,9 +27,10 @@ export interface TableProps extends TableHTMLAttributes<HTMLTableElement> {
  * from making the whole document scroll sideways on a phone. It is also why the
  * radius lives on the wrapper: the table itself cannot clip its own corners.
  */
-export function Table({ caption, children, ...rest }: TableProps) {
+export function Table({ caption, span, children, ...rest }: TableProps) {
+  const wrapClass = span === 'full' ? 'nav-table-wrap nav-table-wrap--full' : 'nav-table-wrap'
   return (
-    <div className="nav-table-wrap">
+    <div className={wrapClass}>
       <table className="nav-table" {...rest}>
         {caption ? <caption className="nav-table__caption">{caption}</caption> : null}
         {children}

@@ -92,7 +92,10 @@ apiFetch('/app/api/people', 'post', { body: { email: 'consumer@example.com', nam
 `,
 )
 
-await exec('pnpm', ['install', '--offline', '--ignore-scripts'], { cwd: consumerDir })
+// A frozen install skips resolution, so the package mirror `--offline` reads
+// can be empty even though every tarball is already in the store. Prefer the
+// store, and fetch only that mirror when it is missing.
+await exec('pnpm', ['install', '--prefer-offline', '--ignore-scripts'], { cwd: consumerDir })
 await exec('pnpm', ['exec', 'tsc', '--project', 'tsconfig.json'], { cwd: consumerDir })
 
 const manifest = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'))
