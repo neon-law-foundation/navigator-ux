@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 import { SiteFooter, SiteHeader } from '../src/index'
 import { BrandSwitch } from './BrandSwitch'
-import { componentsHref, neonHref, pageHref, readGalleryLocation } from './routes'
+import { componentsHref, designHref, neonHref, pageHref, readGalleryLocation } from './routes'
 
 /*
  * The GitHub Pages site is one site, not two: the component gallery and the
@@ -25,6 +25,7 @@ export function GalleryFrame({ children }: { children: ReactNode }) {
         brandHref={componentsHref()}
         links={[
           { label: 'Components', href: componentsHref(), current: view === 'components' },
+          { label: 'Design', href: designHref(), current: view === 'design' },
           { label: 'Sample pages', href: pageHref('home'), current: onPages },
           { label: 'Public site', href: neonHref('home'), current: view === 'neon' },
           { label: 'Councils', href: pageHref('councils'), current: view === 'councils' },
@@ -42,6 +43,7 @@ export function GalleryFrame({ children }: { children: ReactNode }) {
       <SiteFooter
         links={[
           { label: 'Components', href: componentsHref() },
+          { label: 'Design', href: designHref() },
           { label: 'Sample pages', href: pageHref('home') },
           { label: 'Public site', href: neonHref('home') },
           { label: 'Councils', href: pageHref('councils') },

@@ -1,0 +1,38 @@
+/* Misericordia Injury Law — layer two.
+ *
+ * Body is Source Sans 3. Display is Source Serif 4, the library face.
+ * Source Sans 3 is self-hosted at 400 and 700, SIL OFL 1.1.
+ */
+
+@import '@fontsource/source-sans-3/latin-400.css';
+@import '@fontsource/source-sans-3/latin-700.css';
+
+:root:root {
+  --nav-font-family: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
+
+  --nav-color-primary: #7a1f2b;
+  --nav-color-primary-hover: #661a24;
+  --nav-color-primary-active: #51151d;
+  --nav-color-on-primary: #ffffff;
+  --nav-color-on-brand: #ffffff;
+  --nav-color-link: #7a1f2b;
+  --nav-color-link-hover: #51151d;
+  --nav-color-surface-subtle: #faedef;
+  --nav-color-focus: #7a1f2b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:root {
+    /* #7a1f2b on #071619 is 1.48:1. Primary climbs to #df838f (6.84:1) and
+       its ink drops to #0d1117 (7.01:1 on #df838f). */
+    --nav-color-primary: #df838f;
+    --nav-color-primary-hover: #e59ba5;
+    --nav-color-primary-active: #ecb4bb;
+    --nav-color-on-primary: #0d1117;
+    --nav-color-on-brand: #0d1117;
+    --nav-color-link: #df838f;
+    --nav-color-link-hover: #e59ba5;
+    --nav-color-surface-subtle: #321015;
+    --nav-color-focus: #df838f;
+  }
+}

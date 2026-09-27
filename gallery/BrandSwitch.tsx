@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 
+import { BrandMark } from './brand-mark'
 import { GALLERY_BRANDS } from './brands'
 import { brandHref, readBrandId } from './routes'
 
@@ -38,6 +39,7 @@ export function BrandSwitch() {
           href={brandHref(brand.id)}
           aria-current={brand.id === selected ? true : undefined}
         >
+          <BrandMark brand={brand} />
           {brand.label}
         </a>
       ))}

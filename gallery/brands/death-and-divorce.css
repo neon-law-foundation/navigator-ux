@@ -1,0 +1,48 @@
+/* Death & Divorce — layer two.
+ *
+ * Pirata One ships one weight, 400 (SIL OFL 1.1). A 700 rule synthesizes.
+ * The ground moves with the brand.
+ */
+
+@import '@fontsource/pirata-one/latin-400.css';
+
+:root:root {
+  --nav-font-family: 'Pirata One', Georgia, serif;
+
+  --nav-color-primary: #b45535;
+  --nav-color-primary-hover: #963f27;
+  --nav-color-primary-active: #78321f;
+  --nav-color-on-primary: #ffffff;
+  --nav-color-on-brand: #ffffff;
+  --nav-color-link: #8a321e;
+  --nav-color-link-hover: #652313;
+  --nav-color-surface-subtle: #f5f1ee;
+  --nav-color-focus: #b45535;
+  --nav-color-bg: #ffffff;
+  --nav-color-surface: #ffffff;
+  --nav-color-surface-raised: #faf8f6;
+  --nav-color-text: #111111;
+  --nav-color-text-muted: #5a5552;
+  --nav-color-border: #d9d2cd;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:root {
+    /* #f0a080 on #111111 is 9.03:1, and #111111 on #f0a080 matches it. */
+    --nav-color-primary: #f0a080;
+    --nav-color-primary-hover: #f6b49a;
+    --nav-color-primary-active: #f9c8b3;
+    --nav-color-on-primary: #111111;
+    --nav-color-on-brand: #111111;
+    --nav-color-link: #f0a080;
+    --nav-color-link-hover: #f6b49a;
+    --nav-color-surface-subtle: #211a17;
+    --nav-color-focus: #f0a080;
+    --nav-color-bg: #111111;
+    --nav-color-surface: #181412;
+    --nav-color-surface-raised: #211a17;
+    --nav-color-text: #f8f6f4;
+    --nav-color-text-muted: #c9c1bd;
+    --nav-color-border: #493a34;
+  }
+}
