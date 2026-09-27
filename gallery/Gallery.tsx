@@ -52,7 +52,12 @@ import {
   type DataColumn,
 } from '../src/index'
 import { CFO, CLIENT, DEFENDANT_SHORT, LAWYER } from '../fixtures/matter.mjs'
-import { MOTION_SECTIONS, RECORD_CITATIONS } from './outline-specimen'
+import {
+  GENERATED_NOTATION,
+  GENERATED_NOTATION_CHECKLIST,
+  MOTION_SECTIONS,
+  RECORD_CITATIONS,
+} from './outline-specimen'
 import { BrandMark } from './brand-mark'
 import { navigatorBrandLinks } from './navigator-brands'
 import { GALLERY_BRANDS } from './brands'
@@ -428,6 +433,27 @@ export function Gallery() {
           <FormCard onSubmit={(event) => event.preventDefault()}>
             <PeopleList legend="Who should receive it?" name="recipients" people={[]} />
           </FormCard>
+        </Section>
+
+        <Section
+          title="Notation outline"
+          note="The numbered outline sits beside its review checklist."
+        >
+          <HarvardOutlineViewer
+            sections={GENERATED_NOTATION}
+            aria-label="Generated notation outline"
+            scrollMode="page"
+          />
+          <ol aria-label="Notation checklist">
+            {GENERATED_NOTATION_CHECKLIST.map((step) => (
+              <li key={step.id}>
+                <label>
+                  <input type="checkbox" defaultChecked={step.checked} />
+                  {step.title}{step.detail ? ` — ${step.detail}` : ''}
+                </label>
+              </li>
+            ))}
+          </ol>
         </Section>
 
         <Section

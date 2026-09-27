@@ -1,6 +1,8 @@
 import { DEFENDANT_SHORT, DEPONENT_SHORT, PLAINTIFF } from '../fixtures/matter.mjs'
+import { fakeParagraph, fakeSentence, fakeTitle } from '../fixtures/fake.mjs'
 import { RecordCite, type RecordCitation } from '../src/components/CiteTheRecord'
 import type { HarvardOutlineSection } from '../src/components/HarvardOutline'
+import { deriveNotationChecklist, parseNotation } from '../src/lib/notation'
 
 /**
  * Invented brief excerpts. Each quote sits inside its excerpt verbatim, which
@@ -102,3 +104,17 @@ export const MOTION_SECTIONS: HarvardOutlineSection[] = [
     ],
   },
 ]
+
+export const GENERATED_NOTATION = parseNotation([
+  `I. ${fakeTitle('gallery/notation/section')}`,
+  fakeParagraph('gallery/notation/body-one', 4),
+  `II. ${fakeTitle('gallery/notation/second-section')}`,
+  fakeParagraph('gallery/notation/body-two', 4),
+  `III. ${fakeTitle('gallery/notation/third-section')}`,
+  `A. ${fakeTitle('gallery/notation/subsection')}`,
+  `[${fakeTitle('gallery/notation/hold-label').toUpperCase()} — ${fakeSentence('gallery/notation/hold')}]`,
+  `${fakeTitle('gallery/notation/blank-lead')}: [${fakeTitle('gallery/notation/blank-label').toUpperCase()}]`,
+  `[resolved. ${fakeSentence('gallery/notation/resolved')}]`,
+].join('\n\n'))
+
+export const GENERATED_NOTATION_CHECKLIST = deriveNotationChecklist(GENERATED_NOTATION)

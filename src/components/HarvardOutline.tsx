@@ -17,7 +17,22 @@ export interface HarvardOutlineSection {
   title: string
   /** Body of this unit. Nested sections render after it. */
   children?: ReactNode
+  /** Parsed notation blocks rendered when `children` is not supplied. */
+  blocks?: HarvardOutlineBlock[]
   sections?: HarvardOutlineSection[]
+}
+
+export interface HarvardOutlineBlock {
+  id: string
+  type: 'paragraph' | 'list-item' | 'hold'
+  text: string
+  runs: HarvardOutlineRun[]
+}
+
+export interface HarvardOutlineRun {
+  id: string
+  type: 'text' | 'emphasis'
+  text: string
 }
 
 export interface HarvardOutlineViewerProps {
@@ -30,6 +45,8 @@ export interface HarvardOutlineViewerProps {
    */
   activeId?: string
   onActiveIdChange?: (id: string) => void
+  /** Scroll the document with the page and keep the outline rail sticky. */
+  scrollMode?: 'pane' | 'page'
 }
 
 interface FlatUnit {
@@ -39,6 +56,7 @@ interface FlatUnit {
   path: string
   depth: number
   children?: ReactNode
+  blocks?: HarvardOutlineBlock[]
 }
 
 function flatten(
@@ -56,10 +74,38 @@ function flatten(
         path,
         depth,
         children: section.children,
+        blocks: section.blocks,
       },
       ...flatten(section.sections ?? [], depth + 1, path),
     ]
   })
+}
+
+function BlockList({ blocks }: { blocks: HarvardOutlineBlock[] }) {
+  const renderRuns = (block: HarvardOutlineBlock) => block.runs.map((run) => (
+    run.type === 'emphasis'
+      ? <em key={run.id}>{run.text}</em>
+      : <span key={run.id}>{run.text}</span>
+  ))
+
+  return (
+    <>
+      {blocks.map((block) => block.type === 'list-item' ? (
+        <ul className="harvard-outline__list" key={block.id}>
+          <li id={block.id} data-notation-type={block.type}>{renderRuns(block)}</li>
+        </ul>
+      ) : (
+        <p
+          key={block.id}
+          id={block.id}
+          className={block.type === 'hold' ? 'harvard-outline__hold' : undefined}
+          data-notation-type={block.type}
+        >
+          {block.type === 'hold' ? <>[ {renderRuns(block)} ]</> : renderRuns(block)}
+        </p>
+      ))}
+    </>
+  )
 }
 
 /**
@@ -76,12 +122,15 @@ export function HarvardOutlineViewer({
   'aria-label': ariaLabel = 'Harvard outline',
   activeId,
   onActiveIdChange,
+  scrollMode = 'pane',
 }: HarvardOutlineViewerProps) {
   const units = useMemo(() => flatten(sections), [sections])
   const navId = useId()
+  const navRef = useRef<HTMLElement>(null)
   const paneRef = useRef<HTMLDivElement>(null)
   const [internalId, setInternalId] = useState(units[0]?.id ?? '')
   const currentId = activeId ?? internalId
+  const setCurrentRef = useRef<(id: string) => void>(() => undefined)
 
   const setCurrent = useCallback(
     (id: string) => {
@@ -92,16 +141,20 @@ export function HarvardOutlineViewer({
   )
 
   useEffect(() => {
+    setCurrentRef.current = setCurrent
+  }, [setCurrent])
+
+  useEffect(() => {
     if (activeId !== undefined) return
     if (units.some((unit) => unit.id === internalId)) return
     setInternalId(units[0]?.id ?? '')
   }, [activeId, internalId, units])
 
   useEffect(() => {
-    const root = paneRef.current
-    if (!root || units.length === 0 || typeof IntersectionObserver === 'undefined') {
-      return undefined
-    }
+    if (units.length === 0 || typeof IntersectionObserver === 'undefined') return undefined
+    const root = scrollMode === 'page' ? null : paneRef.current
+    const documentRoot = scrollMode === 'page' ? document.getElementById(navId) : root
+    if (!documentRoot) return undefined
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -109,16 +162,29 @@ export function HarvardOutlineViewer({
           .filter((entry) => entry.isIntersecting)
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
         const next = visible[0]?.target.getAttribute('data-harvard-id')
-        if (next) setCurrent(next)
+        if (next) setCurrentRef.current(next)
       },
       { root, rootMargin: '0px 0px -55% 0px', threshold: 0 },
     )
 
-    for (const node of root.querySelectorAll('[data-harvard-id]')) {
+    for (const node of documentRoot.querySelectorAll('[data-harvard-id]')) {
       observer.observe(node)
     }
     return () => observer.disconnect()
-  }, [setCurrent, units])
+  }, [navId, scrollMode, units])
+
+  useEffect(() => {
+    const nav = navRef.current
+    if (!nav || !currentId) return
+    const item = Array.from(nav.querySelectorAll<HTMLElement>('[data-harvard-nav-id]')).find(
+      (node) => node.dataset.harvardNavId === currentId,
+    )
+    if (!item) return
+    const navRect = nav.getBoundingClientRect()
+    const itemRect = item.getBoundingClientRect()
+    if (itemRect.top < navRect.top) nav.scrollTop -= navRect.top - itemRect.top
+    else if (itemRect.bottom > navRect.bottom) nav.scrollTop += itemRect.bottom - navRect.bottom
+  }, [currentId])
 
   const jumpTo = useCallback(
     (id: string) => {
@@ -167,8 +233,9 @@ export function HarvardOutlineViewer({
   }
 
   return (
-    <div className="harvard-outline">
+    <div className={`harvard-outline${scrollMode === 'page' ? ' harvard-outline--page-scroll' : ''}`}>
       <nav
+        ref={navRef}
         className="harvard-outline__nav"
         aria-label={ariaLabel}
         aria-controls={navId}
@@ -187,6 +254,7 @@ export function HarvardOutlineViewer({
                   : 'harvard-outline__item'
               }
               data-depth={Math.min(unit.depth, 6)}
+              data-harvard-nav-id={unit.id}
               aria-current={current ? 'location' : undefined}
               onClick={() => jumpTo(unit.id)}
             >
@@ -197,7 +265,13 @@ export function HarvardOutlineViewer({
           )
         })}
       </nav>
-      <div className="harvard-outline__doc" id={navId} ref={paneRef} tabIndex={-1}>
+      <div
+        className="harvard-outline__doc"
+        id={navId}
+        ref={paneRef}
+        tabIndex={-1}
+        data-harvard-document
+      >
         {units.map((unit) => {
           const current = unit.id === currentId
           return (
@@ -215,7 +289,7 @@ export function HarvardOutlineViewer({
               <h3 className="harvard-outline__heading">
                 <span className="harvard-outline__marker">{unit.marker}.</span> {unit.title}
               </h3>
-              {unit.children}
+              {unit.children ?? (unit.blocks ? <BlockList blocks={unit.blocks} /> : null)}
             </article>
           )
         })}

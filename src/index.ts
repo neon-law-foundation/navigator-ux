@@ -358,9 +358,16 @@ export {
 export { SourceThread, type SourceMessage, type SourceThreadProps } from './components/SourceThread'
 export {
   HarvardOutlineViewer,
+  type HarvardOutlineBlock,
+  type HarvardOutlineRun,
   type HarvardOutlineSection,
   type HarvardOutlineViewerProps,
 } from './components/HarvardOutline'
+export {
+  deriveNotationChecklist,
+  parseNotation,
+  type NotationChecklistStep,
+} from './lib/notation'
 export {
   CiteTheRecord,
   RecordCite,
