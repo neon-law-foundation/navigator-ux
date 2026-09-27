@@ -394,6 +394,13 @@ textarea {
   overflow-x: auto;
 }
 
+/* Fills the band it sits in. The wrap is already 100% of its parent; this
+   clears a nested measure so a full-width band is actually the table's width. */
+.nav-table-wrap--full {
+  width: 100%;
+  max-width: none;
+}
+
 .nav-table {
   width: 100%;
   border-collapse: collapse;
@@ -1165,6 +1172,26 @@ a.nav-pagination__link:hover {
 /* Form — a constrained create/edit card with labeled fields. */
 .nav-form-card {
   max-width: 32rem;
+}
+
+/* From 48rem the single fields pair. Title, prose, fieldsets, checks, and
+   the submit stay on their own row. */
+.nav-form-card--full {
+  max-width: none;
+}
+
+@media (min-width: 48rem) {
+  .nav-form-card--full .nav-card__body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 1rem;
+  }
+
+  .nav-form-card--full .nav-card__body > :not(.nav-field),
+  .nav-form-card--full .nav-field--check,
+  .nav-form-card--full .nav-field:has(textarea) {
+    grid-column: 1 / -1;
+  }
 }
 
 .nav-form-card__title {

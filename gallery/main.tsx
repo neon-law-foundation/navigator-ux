@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import '../src/styles/fonts.css'
+import './brands/faces.css'
 import { Gallery } from './Gallery'
 import { replaceLegacyGalleryUrl } from './routes'
 

@@ -36,6 +36,7 @@ import {
   TextareaField,
   TextField,
 } from '../src/index'
+import { DesignPage } from './design'
 import { MOTION_SECTIONS, RECORD_CITATIONS } from './outline-specimen'
 import { NeonSite } from './neon-site'
 import { PageCardArt, PageFigurePanel } from './page-figures'
@@ -529,6 +530,7 @@ export function Showcase() {
   const { view, pageId } = readGalleryLocation()
   const page = SAMPLE_PAGES.find((candidate) => candidate.id === pageId)
   if (view === 'neon') return <NeonSite />
+  if (view === 'design') return <GalleryFrame><DesignPage /></GalleryFrame>
   if (view === 'page' && page) return <GalleryFrame><SamplePageView page={page} /></GalleryFrame>
   if (view === 'councils') return <GalleryFrame><Councils /></GalleryFrame>
   return <GalleryFrame><Home /></GalleryFrame>

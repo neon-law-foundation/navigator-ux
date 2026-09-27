@@ -32,6 +32,11 @@ export interface FormCardProps {
   error?: ReactNode
   /** A standing note — "this record cannot be edited after approval". */
   notice?: ReactNode
+  /**
+   * Drop the narrow measure so the form can share a table's width. The default
+   * stays a column because a short create form is easier to scan that way.
+   */
+  span?: 'full'
   children: ReactNode
   onSubmit?: (event: React.FormEvent<HTMLFormElement>) => void
 }
@@ -43,11 +48,15 @@ export function FormCard({
   method = 'post',
   error,
   notice,
+  span,
   children,
   onSubmit,
 }: FormCardProps) {
+  const formClass = ['nav-card', 'nav-form-card', span === 'full' ? 'nav-form-card--full' : null]
+    .filter(Boolean)
+    .join(' ')
   return (
-    <form className="nav-card nav-form-card" action={action} method={method} onSubmit={onSubmit}>
+    <form className={formClass} action={action} method={method} onSubmit={onSubmit}>
       <div className="nav-card__body">
         {title ? <h2 className="nav-form-card__title">{title}</h2> : null}
         {intro ? <p className="nav-form-card__intro">{intro}</p> : null}

@@ -1,0 +1,52 @@
+/* CyberInjuryLaw — layer two.
+ *
+ * Body is DM Sans. Display is Barlow Condensed. Both at 400 and 700, SIL
+ * OFL 1.1, from the gallery's fontsource package. The ground moves with
+ * the brand; the library neutrals are not this identity.
+ */
+
+@import '@fontsource/dm-sans/latin-400.css';
+@import '@fontsource/dm-sans/latin-700.css';
+@import '@fontsource/barlow-condensed/latin-400.css';
+@import '@fontsource/barlow-condensed/latin-700.css';
+
+:root:root {
+  --nav-font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+
+  --nav-color-primary: #446300;
+  --nav-color-primary-hover: #344d00;
+  --nav-color-primary-active: #263800;
+  --nav-color-on-primary: #ffffff;
+  --nav-color-on-brand: #ffffff;
+  --nav-color-link: #446300;
+  --nav-color-link-hover: #344d00;
+  --nav-color-surface-subtle: #e7efcf;
+  --nav-color-focus: #446300;
+  --nav-color-bg: #f0f1e9;
+  --nav-color-surface: #ffffff;
+  --nav-color-surface-raised: #ffffff;
+  --nav-color-text: #10110f;
+  --nav-color-text-muted: #52564b;
+  --nav-color-border: #bdc3b0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:root {
+    /* #c3ff35 on #10110f is 15.94:1, and #10110f on #c3ff35 matches it. */
+    --nav-color-primary: #c3ff35;
+    --nav-color-primary-hover: #d6ff77;
+    --nav-color-primary-active: #a6e021;
+    --nav-color-on-primary: #10110f;
+    --nav-color-on-brand: #10110f;
+    --nav-color-link: #c3ff35;
+    --nav-color-link-hover: #d6ff77;
+    --nav-color-surface-subtle: #22251b;
+    --nav-color-focus: #c3ff35;
+    --nav-color-bg: #10110f;
+    --nav-color-surface: #161a12;
+    --nav-color-surface-raised: #22251b;
+    --nav-color-text: #f0f1e9;
+    --nav-color-text-muted: #bfc4b5;
+    --nav-color-border: #535a48;
+  }
+}

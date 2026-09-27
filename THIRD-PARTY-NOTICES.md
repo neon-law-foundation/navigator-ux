@@ -272,6 +272,8 @@ wins with no component touched. See the typography section of the [README](./REA
 Nothing in `dist` reaches off-origin for a font or for anything else; `pnpm check:bundle` fails the
 build on any reference that does.
 
-**Plus Jakarta Sans and Tinos are gallery-only.** The brand switch loads them from
-`@fontsource/plus-jakarta-sans` (OFL 1.1) and `@fontsource/tinos` (Apache-2.0). They are
-devDependencies, not in `src/` and not in the published `dist`.
+**The house faces other than Source Serif 4 are gallery-only.** The brand switch and `/design`
+load them from fontsource, all SIL OFL 1.1: Mukta, DM Sans, Barlow Condensed, Public Sans,
+Source Sans 3, Libre Franklin, EB Garamond, Pirata One (400 only), Plus Jakarta Sans, and Tinos.
+They are devDependencies, not in `src/` and not in the published `dist`. Pirata One ships at 400
+only, so a bold rule synthesizes.

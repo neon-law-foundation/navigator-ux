@@ -22,6 +22,13 @@ describe('parseGalleryLocation', () => {
       sku: null,
       brand: 'delete-your-data',
     })
+    expect(parseGalleryLocation('/design', '?brand=abhaya', ROOT)).toEqual({
+      view: 'design',
+      componentId: 'brand-tokens',
+      pageId: null,
+      sku: null,
+      brand: 'abhaya',
+    })
     expect(parseGalleryLocation('/neon/checkout', '?sku=llc-launch&brand=lawyer-shook', ROOT)).toEqual({
       view: 'neon',
       componentId: 'brand-tokens',
@@ -69,6 +76,18 @@ describe('formatGalleryHref', () => {
         ROOT,
       ),
     ).toBe('/components/buttons-and-badges?brand=delete-your-data')
+    expect(
+      formatGalleryHref(
+        {
+          view: 'design',
+          componentId: 'brand-tokens',
+          pageId: null,
+          sku: null,
+          brand: 'vesta',
+        },
+        ROOT,
+      ),
+    ).toBe('/design?brand=vesta')
     expect(
       formatGalleryHref(
         {

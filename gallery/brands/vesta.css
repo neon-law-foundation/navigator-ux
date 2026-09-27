@@ -1,0 +1,38 @@
+/* Vesta Estate Planning — layer two.
+ *
+ * Self-hosted EB Garamond at 400 and 700, SIL OFL 1.1, from the gallery's
+ * fontsource package.
+ */
+
+@import '@fontsource/eb-garamond/latin-400.css';
+@import '@fontsource/eb-garamond/latin-700.css';
+
+:root:root {
+  --nav-font-family: 'EB Garamond', Garamond, Georgia, serif;
+
+  --nav-color-primary: #8a5a2b;
+  --nav-color-primary-hover: #774d25;
+  --nav-color-primary-active: #63411f;
+  --nav-color-on-primary: #ffffff;
+  --nav-color-on-brand: #ffffff;
+  --nav-color-link: #8a5a2b;
+  --nav-color-link-hover: #63411f;
+  --nav-color-surface-subtle: #f9f3ee;
+  --nav-color-focus: #8a5a2b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:root {
+    /* #8a5a2b on #071619 is 2.48:1. Primary climbs to #cb925a (6.85:1) and
+       its ink drops to #0d1117 (7.03:1 on #cb925a). */
+    --nav-color-primary: #cb925a;
+    --nav-color-primary-hover: #d2a171;
+    --nav-color-primary-active: #dab189;
+    --nav-color-on-primary: #0d1117;
+    --nav-color-on-brand: #0d1117;
+    --nav-color-link: #cb925a;
+    --nav-color-link-hover: #d2a171;
+    --nav-color-surface-subtle: #302112;
+    --nav-color-focus: #cb925a;
+  }
+}

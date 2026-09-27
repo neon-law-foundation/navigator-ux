@@ -1,0 +1,38 @@
+/* Abhaya Immigration — layer two.
+ *
+ * Self-hosted Mukta at 400 and 700, SIL OFL 1.1, from the gallery's
+ * fontsource package.
+ */
+
+@import '@fontsource/mukta/latin-400.css';
+@import '@fontsource/mukta/latin-700.css';
+
+:root:root {
+  --nav-font-family: 'Mukta', ui-sans-serif, system-ui, sans-serif;
+
+  --nav-color-primary: #1f4e79;
+  --nav-color-primary-hover: #1a4165;
+  --nav-color-primary-active: #153450;
+  --nav-color-on-primary: #ffffff;
+  --nav-color-on-brand: #ffffff;
+  --nav-color-link: #1f4e79;
+  --nav-color-link-hover: #153450;
+  --nav-color-surface-subtle: #edf4fa;
+  --nav-color-focus: #1f4e79;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:root {
+    /* 1f4e79 on #071619 is 1.72:1. Primary climbs to #68a3d8 (6.87:1) and
+       its ink drops to #0d1117 (7.05:1 on #68a3d8). */
+    --nav-color-primary: #68a3d8;
+    --nav-color-primary-hover: #80b2de;
+    --nav-color-primary-active: #99c1e5;
+    --nav-color-on-primary: #0d1117;
+    --nav-color-on-brand: #0d1117;
+    --nav-color-link: #68a3d8;
+    --nav-color-link-hover: #80b2de;
+    --nav-color-surface-subtle: #102232;
+    --nav-color-focus: #68a3d8;
+  }
+}
