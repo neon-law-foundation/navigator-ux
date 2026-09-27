@@ -58,6 +58,15 @@ describe('FormCard', () => {
     expect(container.querySelector('form')).toHaveAttribute('method', 'get')
   })
 
+  it('drops the measure when it spans the full width', () => {
+    const { container } = render(
+      <FormCard span="full" title="New person">
+        <TextField label="Name" name="name" />
+      </FormCard>,
+    )
+    expect(container.querySelector('form')).toHaveClass('nav-form-card--full')
+  })
+
   it('calls onSubmit when it has one', async () => {
     const onSubmit = vi.fn((event: React.FormEvent) => event.preventDefault())
     const user = userEvent.setup()

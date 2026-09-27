@@ -43,6 +43,12 @@ export interface DataTableProps<Row> {
   sortHref?: (key: string, direction: SortDirection) => string
   /** Shown in place of the body when there is nothing to list. */
   empty?: ReactNode
+  /** Fill the band the table sits in, instead of a nested measure. */
+  span?: 'full'
+}
+
+function tableWrapClass(span?: 'full') {
+  return span === 'full' ? 'nav-table-wrap nav-table-wrap--full' : 'nav-table-wrap'
 }
 
 const ARROW: Record<SortDirection, string> = { asc: '↑', desc: '↓' }
@@ -61,10 +67,11 @@ export function DataTable<Row>({
   sort,
   sortHref,
   empty = 'Nothing to show.',
+  span,
 }: DataTableProps<Row>) {
   if (rows.length === 0) {
     return (
-      <div className="nav-table-wrap">
+      <div className={tableWrapClass(span)}>
         {caption ? <p className="nav-text-muted">{caption}</p> : null}
         <p className="nav-empty">{empty}</p>
       </div>
@@ -72,7 +79,7 @@ export function DataTable<Row>({
   }
 
   return (
-    <div className="nav-table-wrap">
+    <div className={tableWrapClass(span)}>
       <table className="nav-table">
         {caption ? <caption>{caption}</caption> : null}
         <thead>
