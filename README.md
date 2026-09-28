@@ -220,6 +220,7 @@ The matter surfaces, on the same tokens:
 | Chrome | `CaseNav`, `Shell`, `CaseHead`, `Layout`, `Stack`, `ReviewNav` |
 | Primitives | `Panel`, `Badge`, `Button`, `LinkButton`, `ButtonRow`, `Callout` |
 | Review | `Decision`, `DecisionGrid`, `DraftCard`, `AuthorityList`, `AuthorityDialog`, `HarvardOutlineViewer` |
+| Notation | `parseNotation` turns Markdown into outline blocks; `deriveNotationChecklist` creates review steps from holds and blanks |
 | Record | `SourceThread`, `CiteTheRecord`, `RecordCite`, `ClaimTable`, `FactGrid`, `DownloadGrid`, `ActionList`, `Record`, `StatusStrip` |
 | Chat | `Chat`, `ChatComposer` |
 | Platform | `ThemeProvider`/`useTheme`, `SessionProvider`/`useSession`, `apiFetch` |

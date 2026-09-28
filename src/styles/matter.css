@@ -1142,6 +1142,23 @@ section[id] {
   background: var(--nav-color-surface);
 }
 
+.harvard-outline--page-scroll {
+  overflow: visible;
+  max-height: none;
+  align-items: start;
+}
+
+.harvard-outline--page-scroll .harvard-outline__nav {
+  position: sticky;
+  top: var(--nav-outline-sticky-top, 1rem);
+  align-self: start;
+  max-height: calc(100vh - 2rem);
+}
+
+.harvard-outline--page-scroll .harvard-outline__doc {
+  overflow: visible;
+}
+
 .harvard-outline__nav,
 .cite-the-record__nav {
   overflow: auto;
@@ -1262,6 +1279,16 @@ section[id] {
 
 .harvard-outline__unit p {
   margin: 0 0 0.6rem;
+}
+
+.harvard-outline__unit .harvard-outline__hold {
+  color: var(--nav-color-text-muted);
+  font-style: italic;
+}
+
+.harvard-outline__unit .harvard-outline__list {
+  margin: 0 0 0.6rem;
+  padding-inline-start: 1.35rem;
 }
 
 .harvard-outline__empty,
