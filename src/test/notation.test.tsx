@@ -3,7 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { fakeSentence, fakeTitle } from '../../fixtures/fake.mjs'
 import { HarvardOutlineViewer } from '../components/HarvardOutline'
-import { deriveNotationChecklist, parseNotation } from '../lib/notation'
+import { NotationViewer } from '../components/NotationViewer'
+import { deriveNotationChecklist, parseNotation, parseNotationDocument } from '../lib/notation'
 
 const SECTION_TITLE = fakeTitle('notation/section')
 const NESTED_TITLE = fakeTitle('notation/nested-section')
@@ -38,7 +39,7 @@ describe('parseNotation', () => {
     expect(section?.id).toBe(sectionSlug(SECTION_TITLE))
     expect(section?.blocks?.map(({ id, type }) => ({ id, type }))).toEqual([
       { id: `${sectionSlug(SECTION_TITLE)}-1`, type: 'paragraph' },
-      { id: `${sectionSlug(SECTION_TITLE)}-2`, type: 'list-item' },
+      { id: `${sectionSlug(SECTION_TITLE)}-2`, type: 'ordered-list-item' },
       { id: `${sectionSlug(SECTION_TITLE)}-3`, type: 'hold' },
       { id: `${sectionSlug(SECTION_TITLE)}-4`, type: 'paragraph' },
     ])
@@ -87,6 +88,59 @@ describe('parseNotation', () => {
 
   it('falls back to a generic slug for headings without slug characters', () => {
     expect(parseNotation('# !!!')[0]?.id).toBe('section')
+  })
+
+  it('parses a frontmatter-free document with numeral anchors and open terms', () => {
+    const parsed = parseNotationDocument(`---\nkind: agreement\n---\n# Template title\n\nPreamble text for {{effective date}}.\n\n> Quoted preamble.\n\n## I. Repeated heading\n\nFirst {{effective date}}.\n\n## A. Nested heading\n\n### 1. Repeated heading\n\n1. First item\n2. Second item\n\n## II. Repeated heading\n\n> Quoted section.`)
+
+    expect(parsed.title).toBe('Template title')
+    expect(parsed.preamble.map(({ type }) => type)).toEqual(['paragraph', 'quotation'])
+    expect(parsed.sections.map(({ id }) => id)).toEqual(['section-i', 'section-ii'])
+    expect(parsed.sections[0]?.sections?.[0]).toMatchObject({
+      id: 'section-i-a',
+      sections: [{ id: 'section-i-a-1', title: 'Repeated heading' }],
+    })
+    expect(parsed.sections[0]?.sections?.[0]?.sections?.[0]?.blocks?.map(({ type }) => type)).toEqual([
+      'ordered-list-item', 'ordered-list-item',
+    ])
+    expect(parsed.sections[0]?.blocks?.[0]?.runs).toContainEqual(
+      expect.objectContaining({ type: 'open-term', text: 'effective date' }),
+    )
+    expect(parsed.openTerms).toEqual([{ id: 'open-term-effective-date', label: 'effective date' }])
+  })
+
+  it('handles a body without frontmatter or sections, including unordered items and consecutive quotes', () => {
+    const parsed = parseNotationDocument('')
+    const [section] = parseNotation(`I. ${SECTION_TITLE}\n\n> First quote\n> Second quote\n\n- An unordered item`)
+
+    expect(parsed).toEqual({ title: '', preamble: [], sections: [], openTerms: [] })
+    expect(section?.blocks?.map(({ type }) => type)).toEqual(['quotation', 'list-item'])
+    expect(section?.blocks?.[0]?.text).toBe('First quote Second quote')
+  })
+})
+
+describe('NotationViewer', () => {
+  it('renders an empty outline when the source has no title, terms, or sections', () => {
+    render(<NotationViewer source="" hrefForId={(id) => `#${id}`} />)
+    expect(screen.getByText('This outline has no sections yet.')).toBeInTheDocument()
+  })
+
+  it('renders Contents links, preamble, quotations, ordered lists, and labelled open terms', () => {
+    const hrefForId = (id: string) => `/portal/agreements/current#${id}`
+    const source = `---\nkind: agreement\n---\n# Template title\n\nPreamble for {{governing law}}.\n\n> Preamble quotation.\n\n## I. First heading\n\n1. First numbered item\n2. Second numbered item\n\n## II. First heading\n\nTerms include {{governing law}}.`
+
+    render(<NotationViewer source={source} hrefForId={hrefForId} />)
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Template title' })).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Contents' })).toBeInTheDocument()
+    const contentsLinks = screen.getByRole('navigation', { name: 'Contents' }).querySelectorAll('a')
+    expect(contentsLinks[0]).toHaveAttribute('href', '/portal/agreements/current#section-i')
+    expect(contentsLinks[1]).toHaveAttribute('href', '/portal/agreements/current#section-ii')
+    expect(screen.getByText('Preamble quotation.').closest('blockquote')).toBeInTheDocument()
+    expect(screen.getByText('First numbered item').closest('ol')).toBeInTheDocument()
+    expect(screen.getByRole('complementary', { name: 'Open terms' })).toHaveTextContent('governing law to be agreed')
+    expect(screen.getAllByText('governing law: to be agreed')).toHaveLength(2)
+    expect(screen.queryByText('kind: agreement')).not.toBeInTheDocument()
   })
 })
 

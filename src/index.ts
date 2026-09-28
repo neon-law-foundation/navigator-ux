@@ -363,10 +363,14 @@ export {
   type HarvardOutlineSection,
   type HarvardOutlineViewerProps,
 } from './components/HarvardOutline'
+export { NotationViewer, type NotationViewerProps } from './components/NotationViewer'
 export {
   deriveNotationChecklist,
   parseNotation,
+  parseNotationDocument,
+  type NotationOpenTerm,
   type NotationChecklistStep,
+  type ParsedNotationDocument,
 } from './lib/notation'
 export {
   CiteTheRecord,
