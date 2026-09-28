@@ -29,6 +29,7 @@ import {
   NavBadge,
   NavButton,
   NavLinkButton,
+  NotationViewer,
   NavigatorFooter,
   NavigatorNavbar,
   NavigatorShell,
@@ -56,6 +57,7 @@ import {
   GENERATED_NOTATION,
   GENERATED_NOTATION_CHECKLIST,
   MOTION_SECTIONS,
+  NOTATION_TEMPLATE_SOURCE,
   RECORD_CITATIONS,
 } from './outline-specimen'
 import { BrandMark } from './brand-mark'
@@ -454,6 +456,16 @@ export function Gallery() {
               </li>
             ))}
           </ol>
+        </Section>
+
+        <Section
+          title="Notation template"
+          note="The contents links follow the portal path; open terms stay visible in the text and in the term list."
+        >
+          <NotationViewer
+            source={NOTATION_TEMPLATE_SOURCE}
+            hrefForId={(id) => `${window.location.pathname}${window.location.search}#${id}`}
+          />
         </Section>
 
         <Section

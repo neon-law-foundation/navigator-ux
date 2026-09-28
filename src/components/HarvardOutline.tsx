@@ -24,14 +24,14 @@ export interface HarvardOutlineSection {
 
 export interface HarvardOutlineBlock {
   id: string
-  type: 'paragraph' | 'list-item' | 'hold'
+  type: 'paragraph' | 'list-item' | 'ordered-list-item' | 'hold' | 'quotation'
   text: string
   runs: HarvardOutlineRun[]
 }
 
 export interface HarvardOutlineRun {
   id: string
-  type: 'text' | 'emphasis'
+  type: 'text' | 'emphasis' | 'open-term'
   text: string
 }
 
@@ -47,6 +47,10 @@ export interface HarvardOutlineViewerProps {
   onActiveIdChange?: (id: string) => void
   /** Scroll the document with the page and keep the outline rail sticky. */
   scrollMode?: 'pane' | 'page'
+  /** Render document material before the first outline section. */
+  introBlocks?: HarvardOutlineBlock[]
+  /** Build a mount-aware fragment URL for each outline section. */
+  hrefForId?: (id: string) => string
 }
 
 interface FlatUnit {
@@ -85,27 +89,49 @@ function BlockList({ blocks }: { blocks: HarvardOutlineBlock[] }) {
   const renderRuns = (block: HarvardOutlineBlock) => block.runs.map((run) => (
     run.type === 'emphasis'
       ? <em key={run.id}>{run.text}</em>
-      : <span key={run.id}>{run.text}</span>
+      : run.type === 'open-term'
+        ? <mark className="notation-viewer__open-term" key={run.id}>{run.text}: to be agreed</mark>
+        : <span key={run.id}>{run.text}</span>
   ))
 
-  return (
-    <>
-      {blocks.map((block) => block.type === 'list-item' ? (
-        <ul className="harvard-outline__list" key={block.id}>
-          <li id={block.id} data-notation-type={block.type}>{renderRuns(block)}</li>
-        </ul>
-      ) : (
-        <p
-          key={block.id}
-          id={block.id}
-          className={block.type === 'hold' ? 'harvard-outline__hold' : undefined}
-          data-notation-type={block.type}
-        >
-          {block.type === 'hold' ? <>[ {renderRuns(block)} ]</> : renderRuns(block)}
-        </p>
-      ))}
-    </>
-  )
+  const rendered: ReactNode[] = []
+  for (let index = 0; index < blocks.length;) {
+    const block = blocks[index]!
+    if (block.type === 'list-item' || block.type === 'ordered-list-item') {
+      const type = block.type
+      const items: HarvardOutlineBlock[] = []
+      while (blocks[index]?.type === type) items.push(blocks[index++]!)
+      const List = type === 'ordered-list-item' ? 'ol' : 'ul'
+      rendered.push(
+        <List className="harvard-outline__list" key={block.id}>
+          {items.map((item) => (
+            <li id={item.id} data-notation-type={item.type} key={item.id}>{renderRuns(item)}</li>
+          ))}
+        </List>,
+      )
+      continue
+    }
+    index += 1
+    if (block.type === 'quotation') {
+      rendered.push(
+        <blockquote className="harvard-outline__quote" id={block.id} data-notation-type={block.type} key={block.id}>
+          {renderRuns(block)}
+        </blockquote>,
+      )
+      continue
+    }
+    rendered.push(
+      <p
+        key={block.id}
+        id={block.id}
+        className={block.type === 'hold' ? 'harvard-outline__hold' : undefined}
+        data-notation-type={block.type}
+      >
+        {block.type === 'hold' ? <>[ {renderRuns(block)} ]</> : renderRuns(block)}
+      </p>,
+    )
+  }
+  return <>{rendered}</>
 }
 
 /**
@@ -123,6 +149,8 @@ export function HarvardOutlineViewer({
   activeId,
   onActiveIdChange,
   scrollMode = 'pane',
+  introBlocks,
+  hrefForId,
 }: HarvardOutlineViewerProps) {
   const units = useMemo(() => flatten(sections), [sections])
   const navId = useId()
@@ -244,7 +272,24 @@ export function HarvardOutlineViewer({
       >
         {units.map((unit) => {
           const current = unit.id === currentId
-          return (
+          return hrefForId ? (
+            <a
+              key={unit.id}
+              className={
+                current
+                  ? 'harvard-outline__item harvard-outline__item--current'
+                  : 'harvard-outline__item'
+              }
+              data-depth={Math.min(unit.depth, 6)}
+              data-harvard-nav-id={unit.id}
+              aria-current={current ? 'location' : undefined}
+              href={hrefForId(unit.id)}
+            >
+              <span className="harvard-outline__marker">{unit.marker}.</span>
+              <span className="harvard-outline__label">{unit.title}</span>
+              <span className="harvard-outline__path">{unit.path}</span>
+            </a>
+          ) : (
             <button
               key={unit.id}
               type="button"
@@ -272,6 +317,9 @@ export function HarvardOutlineViewer({
         tabIndex={-1}
         data-harvard-document
       >
+        {introBlocks?.length ? (
+          <div className="harvard-outline__intro"><BlockList blocks={introBlocks} /></div>
+        ) : null}
         {units.map((unit) => {
           const current = unit.id === currentId
           return (
@@ -285,6 +333,7 @@ export function HarvardOutlineViewer({
               data-harvard-id={unit.id}
               data-harvard-path={unit.path}
               aria-current={current ? 'location' : undefined}
+              id={unit.id}
             >
               <h3 className="harvard-outline__heading">
                 <span className="harvard-outline__marker">{unit.marker}.</span> {unit.title}

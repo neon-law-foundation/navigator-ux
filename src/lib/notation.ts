@@ -52,14 +52,19 @@ function heading(line: string): { marker: string; title: string; depth: number }
 
 function inlineRuns(text: string, blockId: string): HarvardOutlineRun[] {
   const runs: HarvardOutlineRun[] = []
-  const brackets = /\[([^\]]*)\]/g
+  const brackets = /\{\{([^}]+)\}\}|\[([^\]]*)\]/g
   let cursor = 0
   for (const match of text.matchAll(brackets)) {
     const index = match.index ?? 0
     if (index > cursor) {
       runs.push({ id: `${blockId}-run-${cursor}`, type: 'text', text: text.slice(cursor, index) })
     }
-    runs.push({ id: `${blockId}-run-${index}`, type: 'emphasis', text: match[1]!.trim() })
+    const openTerm = match[1]
+    runs.push({
+      id: `${blockId}-run-${index}`,
+      type: openTerm ? 'open-term' : 'emphasis',
+      text: (openTerm ?? match[2] ?? '').trim(),
+    })
     cursor = index + match[0].length
   }
   if (cursor < text.length) {
@@ -130,15 +135,25 @@ export function parseNotation(markdown: string): HarvardOutlineSection[] {
     ensureSection()
     const hold = line.match(/^\[\s*(.*?)\s*\]$/)
     const blankOnly = Boolean(hold && /^(?:blank|\.{2,}|…+)?$/i.test(hold[1]!.trim()))
+    if (line.startsWith('>')) {
+      const quote = line.replace(/^>\s?/, '')
+      if (paragraph?.type === 'quotation') paragraph.text += ` ${quote}`
+      else {
+        flushParagraph()
+        paragraph = { type: 'quotation', text: quote }
+      }
+      continue
+    }
     if (hold && !blankOnly) {
       flushParagraph()
       blockFrom(hold[1]!, 'hold', active!)
       continue
     }
-    const listItem = line.match(/^(?:[-+*]|\d+[.)])\s+(.+)$/)
-    if (listItem) {
+    const orderedItem = line.match(/^\d+[.)]\s+(.+)$/)
+    const listItem = line.match(/^[-+*]\s+(.+)$/)
+    if (orderedItem || listItem) {
       flushParagraph()
-      blockFrom(listItem[1]!, 'list-item', active!)
+      blockFrom(orderedItem ? orderedItem[1]! : listItem![1]!, orderedItem ? 'ordered-list-item' : 'list-item', active!)
       continue
     }
     if (paragraph?.type === 'paragraph') paragraph.text += ` ${line}`
@@ -149,6 +164,75 @@ export function parseNotation(markdown: string): HarvardOutlineSection[] {
   }
   flushParagraph()
   return roots
+}
+
+export interface NotationOpenTerm {
+  id: string
+  label: string
+}
+
+export interface ParsedNotationDocument {
+  title: string
+  preamble: HarvardOutlineBlock[]
+  sections: HarvardOutlineSection[]
+  openTerms: NotationOpenTerm[]
+}
+
+function stripFrontmatter(source: string): string {
+  const lines = source.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').split('\n')
+  if (lines[0]?.trim() !== '---') return lines.join('\n')
+  const end = lines.findIndex((line, index) => index > 0 && /^(?:---|\.\.\.)\s*$/.test(line.trim()))
+  return end < 0 ? lines.join('\n') : lines.slice(end + 1).join('\n')
+}
+
+function remapSectionIds(sections: HarvardOutlineSection[], parentId = ''): void {
+  const counts = new Map<string, number>()
+  sections.forEach((section, index) => {
+    const marker = /^[IVXLCDM]+$/.test(section.marker) || /^[A-Za-z0-9]+$/.test(section.marker)
+      ? section.marker.toLowerCase()
+      : `${index + 1}`
+    const key = `${parentId ? `${parentId}-` : 'section-'}${marker}`
+    const count = (counts.get(key) ?? 0) + 1
+    counts.set(key, count)
+    const id = count === 1 ? key : `${key}-${count}`
+    section.id = id
+    section.blocks?.forEach((block, blockIndex) => {
+      const blockId = `${id}-${blockIndex + 1}`
+      block.id = blockId
+      block.runs = block.runs.map((run, runIndex) => ({ ...run, id: `${blockId}-run-${runIndex}` }))
+    })
+    remapSectionIds(section.sections ?? [], id)
+  })
+}
+
+function blocksIn(sections: HarvardOutlineSection[]): HarvardOutlineBlock[] {
+  return sections.flatMap((section) => [...(section.blocks ?? []), ...blocksIn(section.sections ?? [])])
+}
+
+export function parseNotationDocument(source: string): ParsedNotationDocument {
+  const lines = stripFrontmatter(source).split('\n')
+  const titleIndex = lines.findIndex((line) => /^\s*#\s+/.test(line))
+  const title = titleIndex < 0 ? '' : lines[titleIndex]!.replace(/^\s*#\s+/, '').replace(/\s+#+\s*$/, '').trim()
+  const content = titleIndex < 0 ? lines : lines.slice(titleIndex + 1)
+  const firstSection = content.findIndex((line) => {
+    if (/^\s*#{2,6}\s+/.test(line)) return true
+    return heading(line)?.depth === 1
+  })
+  const preambleSource = (firstSection < 0 ? content : content.slice(0, firstSection)).join('\n').trim()
+  const sectionSource = (firstSection < 0 ? [] : content.slice(firstSection)).join('\n')
+  const preamble = preambleSource ? (parseNotation(preambleSource)[0]?.blocks ?? []) : []
+  const sections = parseNotation(sectionSource)
+  remapSectionIds(sections)
+  const openTerms = new Map<string, NotationOpenTerm>()
+  for (const block of [...preamble, ...blocksIn(sections)]) {
+    for (const run of block.runs) {
+      if (run.type !== 'open-term') continue
+      const label = run.text.trim()
+      const id = slugify(label)
+      if (!openTerms.has(id)) openTerms.set(id, { id: `open-term-${id}`, label })
+    }
+  }
+  return { title, preamble, sections, openTerms: [...openTerms.values()] }
 }
 
 function sentenceCase(value: string): string {
@@ -166,10 +250,6 @@ function firstSentence(value: string): { title: string; detail?: string } {
   return match
     ? { title: sentenceCase(match[1]!), ...(match[2] ? { detail: match[2] } : {}) }
     : { title: sentenceCase(text) }
-}
-
-function blocksIn(sections: HarvardOutlineSection[]): HarvardOutlineBlock[] {
-  return sections.flatMap((section) => [...(section.blocks ?? []), ...blocksIn(section.sections ?? [])])
 }
 
 export function deriveNotationChecklist(sections: HarvardOutlineSection[]): NotationChecklistStep[] {

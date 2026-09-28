@@ -118,3 +118,23 @@ export const GENERATED_NOTATION = parseNotation([
 ].join('\n\n'))
 
 export const GENERATED_NOTATION_CHECKLIST = deriveNotationChecklist(GENERATED_NOTATION)
+
+export const NOTATION_TEMPLATE_SOURCE = [
+  '---',
+  'kind: agreement',
+  '---',
+  `# ${fakeTitle('gallery/notation-viewer/title')}`,
+  '',
+  `${fakeParagraph('gallery/notation-viewer/preamble', 2)} {{${fakeTitle('gallery/notation-viewer/preamble-term')}}}.`,
+  '',
+  `> ${fakeSentence('gallery/notation-viewer/quotation')}`,
+  '',
+  `## I. ${fakeTitle('gallery/notation-viewer/section-one')}`,
+  '',
+  `1. ${fakeSentence('gallery/notation-viewer/ordered-one')}`,
+  `2. ${fakeSentence('gallery/notation-viewer/ordered-two')}`,
+  '',
+  `## II. ${fakeTitle('gallery/notation-viewer/section-two')}`,
+  '',
+  `${fakeTitle('gallery/notation-viewer/term-lead')}: {{${fakeTitle('gallery/notation-viewer/section-term')}}}.`,
+].join('\n')
