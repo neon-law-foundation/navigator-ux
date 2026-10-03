@@ -192,6 +192,7 @@ export {
 } from './components/Overlay'
 export { Toaster, type ToasterProps } from './components/Toaster'
 export {
+  NavigationChords,
   ShortcutHelp,
   ShortcutHost,
   ShortcutList,
@@ -199,9 +200,17 @@ export {
   useShortcut,
   useShortcutList,
   useShortcutRegistry,
+  type NavigationChordsProps,
   type ShortcutListProps,
   type ShortcutProviderProps,
 } from './components/Shortcuts'
+export {
+  NAVIGATION_CHORDS,
+  chordsFor,
+  type NavigationChord,
+  type NavigationHrefs,
+  type NavigationPage,
+} from './lib/navigation-chords'
 export {
   createShortcutRegistry,
   defaultShortcutRegistry,
@@ -211,6 +220,7 @@ export {
   type Shortcut,
   type ShortcutEntry,
   type ShortcutRegistry,
+  type ShortcutRegistryOptions,
   type ShortcutScope,
 } from './lib/shortcuts'
 export {

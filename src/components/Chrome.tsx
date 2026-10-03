@@ -1,6 +1,7 @@
 import { useId, type ReactNode } from 'react'
 import { ExternalLink } from './Navigation'
-import { ShortcutHost } from './Shortcuts'
+import type { NavigationHrefs } from '../lib/navigation-chords'
+import { NavigationChords, ShortcutHost } from './Shortcuts'
 
 /*
  * Page chrome: the public header and footer, the public shell, the
@@ -437,13 +438,27 @@ export function NavigatorFooter({
  * the shell gets it with no wiring of its own. A `showcase` frame is a sample,
  * not a live page, and stays quiet.
  */
-export function NavigatorShell({ header, footer, children, showcase }: ShellFrameProps) {
+export function NavigatorShell({
+  header,
+  footer,
+  children,
+  showcase,
+  chords,
+}: ShellFrameProps & {
+  /** Where this portal's pages live, for the `g`-chords. A page left out has no chord. */
+  chords?: NavigationHrefs
+}) {
   const shell = (
     <div className="navigator-shell nav-theme">
       {header}
       <main className="navigator-shell__main">{children}</main>
       {footer}
-      {showcase ? null : <ShortcutHost />}
+      {showcase ? null : (
+        <>
+          <ShortcutHost />
+          {chords ? <NavigationChords hrefs={chords} /> : null}
+        </>
+      )}
     </div>
   )
 

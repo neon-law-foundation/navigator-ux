@@ -53,4 +53,28 @@ describe('keyboard-shortcut overlay', () => {
     cy.get('body').type('{ctrl+enter}')
     cy.get('[data-testid=done]').should('have.text', 'Ada|california|nda')
   })
+
+  it('moves between pages with g-chords, and only the pages the portal has', () => {
+    cy.get('body').type('gn')
+    cy.location('hash').should('eq', '#notations')
+    cy.get('body').type('gm')
+    cy.location('hash').should('eq', '#matters')
+    // This portal has no documents page, so g d does nothing.
+    cy.get('body').type('gd')
+    cy.location('hash').should('eq', '#matters')
+    cy.get('body').type('?')
+    cy.get('dialog[open]').contains('Go to notations')
+    cy.get('dialog[open]').contains('Go to matters')
+    cy.get('dialog[open]').should('not.contain', 'Go to documents')
+  })
+
+  it('lets a chord lapse after a second and ignores chords in a text field', () => {
+    cy.get('body').type('g')
+    cy.wait(1200)
+    cy.get('body').type('m')
+    cy.location('hash').should('eq', '')
+    cy.get('[data-testid=notes]').type('gm')
+    cy.location('hash').should('eq', '')
+    cy.get('[data-testid=notes]').should('have.value', 'gm')
+  })
 })

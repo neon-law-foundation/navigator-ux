@@ -15,7 +15,10 @@ export function ShortcutsDemo() {
     run: () => setCount((value) => value + 1),
   })
   return (
-    <NavigatorShell header={<NavigatorNavbar brand="Shortcuts" />}>
+    <NavigatorShell
+      header={<NavigatorNavbar brand="Shortcuts" />}
+      chords={{ matters: '#matters', notations: '#notations' }}
+    >
       <button type="button" data-testid="before">
         Before
       </button>

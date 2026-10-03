@@ -11,6 +11,7 @@ import {
 } from 'react'
 
 import {
+  CHORD_THEN,
   defaultShortcutRegistry,
   formatKey,
   type Shortcut,
@@ -18,6 +19,7 @@ import {
   type ShortcutRegistry,
   type ShortcutScope,
 } from '../lib/shortcuts'
+import { chordsFor, type NavigationHrefs } from '../lib/navigation-chords'
 import { Dialog } from './Overlay'
 
 /*
@@ -117,11 +119,17 @@ export function ShortcutList({ shortcuts, platform }: ShortcutListProps) {
                 <div className="nav-shortcuts__row" key={`${scope}:${shortcut.key}`}>
                   <dt>{shortcut.description}</dt>
                   <dd>
-                    {formatKey(shortcut.key, platform).map((cap) => (
-                      <kbd className="nav-kbd" key={cap}>
-                        {cap}
-                      </kbd>
-                    ))}
+                    {formatKey(shortcut.key, platform).map((cap, index) =>
+                      cap === CHORD_THEN ? (
+                        <span className="nav-text-muted" key={`then-${index}`}>
+                          {cap}
+                        </span>
+                      ) : (
+                        <kbd className="nav-kbd" key={`${cap}-${index}`}>
+                          {cap}
+                        </kbd>
+                      ),
+                    )}
                   </dd>
                 </div>
               ))}
@@ -200,4 +208,52 @@ export function ShortcutHost() {
   }, [registry, hide])
 
   return <ShortcutHelp open={open} onClose={hide} />
+}
+
+function Chord({
+  chordKey,
+  description,
+  href,
+  navigate,
+}: {
+  chordKey: string
+  description: string
+  href: string
+  navigate: (href: string) => void
+}) {
+  useShortcut({ key: chordKey, description, scope: 'global', run: () => navigate(href) })
+  return null
+}
+
+export interface NavigationChordsProps {
+  /** Where each page lives; a page left out has no chord. */
+  hrefs: NavigationHrefs
+  /** How to move there. A full page load by default. */
+  navigate?: (href: string) => void
+}
+
+function assign(href: string) {
+  window.location.assign(href)
+}
+
+/**
+ * Registers the global `g`-chords for the pages a portal has.
+ *
+ * `NavigatorShell` renders one when it is given `chords`, so a portal states
+ * its hrefs once, in its layout, and every page inherits the chords.
+ */
+export function NavigationChords({ hrefs, navigate = assign }: NavigationChordsProps) {
+  return (
+    <>
+      {chordsFor(hrefs).map((chord) => (
+        <Chord
+          key={chord.page}
+          chordKey={chord.key}
+          description={chord.description}
+          href={chord.href}
+          navigate={navigate}
+        />
+      ))}
+    </>
+  )
 }
