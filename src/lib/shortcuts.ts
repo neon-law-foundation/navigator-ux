@@ -7,7 +7,8 @@
  * is a shortcut that is listed, and a listed one works.
  *
  * Keys are written the way a person reads them: `?`, `1`, `Mod+Enter`,
- * `Alt+ArrowLeft`. `Mod` is ⌘ on Apple platforms and Ctrl elsewhere, so a
+ * `Alt+ArrowLeft`. A digit range such as `1-9` is one registration for the
+ * whole row of keys, listed once. `Mod` is ⌘ on Apple platforms and Ctrl elsewhere, so a
  * registration is written once and shown in the reader's own vocabulary.
  */
 
@@ -77,7 +78,9 @@ export function matchesKey(spec: string, event: KeyboardEvent): boolean {
   if (parsed.mod !== mod || parsed.alt !== event.altKey) return false
   // A printable character already encodes Shift (`?` is Shift+/), so only a
   // named key such as Enter has a Shift state worth comparing.
-  if (parsed.key.length > 1 && parsed.shift !== event.shiftKey) return false
+  const range = /^(\d)-(\d)$/.exec(parsed.key)
+  if (parsed.key.length > 1 && !range && parsed.shift !== event.shiftKey) return false
+  if (range) return event.key >= range[1]! && event.key <= range[2]! && event.key.length === 1
   return parsed.key.length === 1
     ? event.key.toLowerCase() === parsed.key.toLowerCase()
     : event.key === parsed.key
@@ -179,6 +182,6 @@ export function formatKey(spec: string, platform?: string): string[] {
   if (mod) caps.push(apple ? '⌘' : 'Ctrl')
   if (alt) caps.push(apple ? '⌥' : 'Alt')
   if (shift) caps.push(apple ? '⇧' : 'Shift')
-  caps.push(symbols[key] ?? key)
+  caps.push(symbols[key] ?? key.replace('-', '–'))
   return caps
 }

@@ -57,6 +57,16 @@ describe('key notation', () => {
     )
   })
 
+  it('matches a digit range as one key, only for digits inside it', () => {
+    const digit = (key: string) => new KeyboardEvent('keydown', { key })
+    expect(matchesKey('1-9', digit('1'))).toBe(true)
+    expect(matchesKey('1-9', digit('9'))).toBe(true)
+    expect(matchesKey('1-9', digit('0'))).toBe(false)
+    expect(matchesKey('1-9', digit('a'))).toBe(false)
+    expect(matchesKey('1-9', digit('Tab'))).toBe(false)
+    expect(formatKey('1-9', 'Win32')).toEqual(['1–9'])
+  })
+
   it('labels keys for the reader’s platform', () => {
     expect(formatKey('Mod+Enter', 'MacIntel')).toEqual(['⌘', 'Enter'])
     expect(formatKey('Mod+Enter', 'Win32')).toEqual(['Ctrl', 'Enter'])
