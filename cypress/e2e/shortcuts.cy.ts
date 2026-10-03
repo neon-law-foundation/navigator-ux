@@ -44,7 +44,11 @@ describe('keyboard-shortcut overlay', () => {
 
   it('walks a questionnaire to submission with the keyboard alone', () => {
     cy.get('[data-testid=walk] input[aria-label=Name]').focus().type('Ada{ctrl}{enter}')
-    cy.get('input[type=radio][value=nevada]').should('have.focus')
+    cy.document().should((doc) => {
+      const step = doc.querySelector('.nav-stepper__panel:not([hidden]) h2')?.textContent
+      const active = doc.activeElement?.outerHTML.slice(0, 100)
+      expect(`${step} | ${active} | hasFocus=${doc.hasFocus()}`).to.match(/Governing law \| <input[^>]*value="nevada"/)
+    })
     cy.get('body').type('2')
     cy.get('input[type=radio][value=california]').should('be.checked')
     cy.get('body').type('{ctrl}{enter}')
