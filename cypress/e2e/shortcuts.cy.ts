@@ -43,14 +43,14 @@ describe('keyboard-shortcut overlay', () => {
   })
 
   it('walks a questionnaire to submission with the keyboard alone', () => {
-    cy.get('[data-testid=walk] input[aria-label=Name]').focus().type('Ada{ctrl+enter}')
+    cy.get('[data-testid=walk] input[aria-label=Name]').focus().type('Ada{ctrl}{enter}')
     cy.get('input[type=radio][value=nevada]').should('have.focus')
     cy.get('body').type('2')
     cy.get('input[type=radio][value=california]').should('be.checked')
-    cy.get('body').type('{ctrl+enter}')
+    cy.get('body').type('{ctrl}{enter}')
     cy.get('input[type=checkbox][value=nda]').should('have.focus')
     cy.get('body').type('1')
-    cy.get('body').type('{ctrl+enter}')
+    cy.get('body').type('{ctrl}{enter}')
     cy.get('[data-testid=done]').should('have.text', 'Ada|california|nda')
   })
 
