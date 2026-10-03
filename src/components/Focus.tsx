@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { NavButton } from './Navigation'
+import { useShortcut } from './Shortcuts'
 
 /*
  * The focus set — Stage, Hero, ChoiceGroup, StepList, and Stepper.
@@ -403,11 +404,34 @@ export interface StepperProps {
  * only while it exists. Kept in the tree, the whole flow is one `<form>` and
  * posts as one, which is also what makes `finishType="submit"` work.
  *
- * Moving between steps moves focus to the new step's title. Without that, a
- * keyboard or screen-reader user who presses Continue is left on a button
- * that now belongs to a different question, with nothing to say the page
- * changed.
+ * Moving between steps moves focus to the new step's first input (its title,
+ * for a step with none). Without that, a keyboard or screen-reader user who
+ * presses Continue is left on a button that now belongs to a different
+ * question, with nothing to say the page changed.
+ *
+ * It registers its keys in the shortcut registry, so the `?` overlay lists
+ * them: Mod+Enter advances (or submits on the last step) even from a text
+ * field, Mod+Backspace and Alt+← go back, and 1–9 choose the matching radio or
+ * checkbox when focus is not in a text field.
  */
+function currentPanel(root: HTMLElement | null): HTMLElement | null {
+  return root?.querySelector<HTMLElement>('.nav-stepper__panel:not([hidden])') ?? null
+}
+
+function choiceInputs(panel: HTMLElement | null): HTMLInputElement[] {
+  return Array.from(
+    panel?.querySelectorAll<HTMLInputElement>('input[type=radio], input[type=checkbox]') ?? [],
+  ).filter((input) => !input.disabled)
+}
+
+function firstInput(panel: HTMLElement | null): HTMLElement | null {
+  return (
+    panel?.querySelector<HTMLElement>(
+      'input:not([type=hidden]):not(:disabled), select:not(:disabled), textarea:not(:disabled)',
+    ) ?? null
+  )
+}
+
 export function Stepper({
   steps,
   label,
@@ -424,13 +448,20 @@ export function Stepper({
   const [internal, setInternal] = useState(defaultCurrent)
   const last = steps.length - 1
   const index = Math.max(0, Math.min(last, current ?? internal))
+  const rootRef = useRef<HTMLDivElement>(null)
   const titleRefs = useRef<Array<HTMLHeadingElement | null>>([])
   const previous = useRef(index)
+  const [hasChoices, setHasChoices] = useState(false)
+  const isLast = index === last
 
   useEffect(() => {
+    const panel = currentPanel(rootRef.current)
+    setHasChoices(choiceInputs(panel).length > 0)
     if (previous.current === index) return
     previous.current = index
-    titleRefs.current[index]?.focus()
+    // The first input is where the reader's next keystroke belongs; a step
+    // with none (a read-only summary) falls back to its title.
+    ;(firstInput(panel) ?? titleRefs.current[index])?.focus()
   }, [index])
 
   function go(next: number) {
@@ -439,12 +470,45 @@ export function Stepper({
     onCurrentChange?.(clamped)
   }
 
+  function advance() {
+    if (!canAdvance) return
+    if (!isLast) return go(index + 1)
+    if (finishType === 'submit') rootRef.current?.closest('form')?.requestSubmit()
+    else onComplete?.()
+  }
+
+  // Held in a field too: a modified Enter is a command, not text.
+  useShortcut({
+    key: 'Mod+Enter',
+    description: 'Next question, or submit on the last',
+    scope: 'page',
+    allowInEditable: true,
+    run: advance,
+  })
+  // Mod+Backspace and Alt+ArrowLeft are edit and navigation keys inside a text
+  // field, so they go back only when focus is elsewhere.
+  const back = index > 0 ? () => go(index - 1) : null
+  useShortcut(
+    back && { key: 'Mod+Backspace', description: 'Previous question', scope: 'page', run: back },
+  )
+  useShortcut(
+    back && { key: 'Alt+ArrowLeft', description: 'Previous question', scope: 'page', run: back },
+  )
+  useShortcut(
+    hasChoices
+      ? {
+          key: '1-9',
+          description: 'Choose the numbered option',
+          scope: 'page',
+          run: (event) => choiceInputs(currentPanel(rootRef.current))[Number(event.key) - 1]?.click(),
+        }
+      : null,
+  )
+
   if (steps.length === 0) return null
 
-  const isLast = index === last
-
   return (
-    <div className="nav-stepper">
+    <div className="nav-stepper" ref={rootRef}>
       {hideSteps ? null : <StepList steps={steps} current={index} label={label} onSelect={go} />}
       {steps.map((step, i) => {
         const titleId = `${baseId}-${i}`
