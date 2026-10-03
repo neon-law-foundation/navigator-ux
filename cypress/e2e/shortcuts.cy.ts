@@ -45,7 +45,7 @@ describe('keyboard-shortcut overlay', () => {
   it('walks a questionnaire to submission with the keyboard alone', () => {
     cy.window().then((win) => {
       const seen: string[] = []
-      ;(win as unknown as { __seen: string[] }).__seen = seen
+      ;(win as unknown as { receivedKeys: string[] }).receivedKeys = seen
       win.document.addEventListener(
         'keydown',
         (event) => seen.push(`${event.key}:ctrl=${event.ctrlKey}:meta=${event.metaKey}:prevented=${event.defaultPrevented}`),
@@ -56,7 +56,7 @@ describe('keyboard-shortcut overlay', () => {
     cy.document().should((doc) => {
       const step = doc.querySelector('.nav-stepper__panel:not([hidden]) h2')?.textContent
       const active = doc.activeElement?.outerHTML.slice(0, 100)
-      const seen = (doc.defaultView as unknown as { __seen: string[] }).__seen.join(' ')
+      const seen = (doc.defaultView as unknown as { receivedKeys: string[] }).receivedKeys.join(' ')
       expect(`${step} | ${active} | hasFocus=${doc.hasFocus()} | ${seen}`).to.match(/Governing law \| <input[^>]*value="nevada"/)
     })
     cy.get('body').type('2')
