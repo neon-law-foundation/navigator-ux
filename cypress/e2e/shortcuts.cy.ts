@@ -53,6 +53,17 @@ describe('keyboard-shortcut overlay', () => {
       )
     })
     cy.get('[data-testid=walk] input[aria-label=Name]').focus().type('Ada{ctrl}{enter}')
+    cy.wait(1000)
+    cy.document().then((doc) => {
+      const title = () => doc.querySelector('.nav-stepper__panel:not([hidden]) h2')?.textContent
+      if (title() !== 'Your name') return
+      doc.activeElement?.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true, cancelable: true }),
+      )
+      cy.wait(500).then(() => {
+        throw new Error(`real Ctrl+Enter ignored; a synthetic one ${title() === 'Your name' ? 'was ignored too' : 'advanced to ' + title()}`)
+      })
+    })
     cy.document().should((doc) => {
       const step = doc.querySelector('.nav-stepper__panel:not([hidden]) h2')?.textContent
       const active = doc.activeElement?.outerHTML.slice(0, 100)
