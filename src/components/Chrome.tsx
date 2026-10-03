@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from 'react'
 import { ExternalLink } from './Navigation'
+import { ShortcutHost } from './Shortcuts'
 
 /*
  * Page chrome: the public header and footer, the public shell, the
@@ -429,13 +430,20 @@ export function NavigatorFooter({
   )
 }
 
-/** The authenticated frame: navbar, content column, footer. */
+/**
+ * The authenticated frame: navbar, content column, footer.
+ *
+ * It also hosts the keyboard-shortcut overlay (`?`), so every page that wears
+ * the shell gets it with no wiring of its own. A `showcase` frame is a sample,
+ * not a live page, and stays quiet.
+ */
 export function NavigatorShell({ header, footer, children, showcase }: ShellFrameProps) {
   const shell = (
     <div className="navigator-shell nav-theme">
       {header}
       <main className="navigator-shell__main">{children}</main>
       {footer}
+      {showcase ? null : <ShortcutHost />}
     </div>
   )
 

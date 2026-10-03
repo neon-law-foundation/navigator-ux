@@ -192,6 +192,28 @@ export {
 } from './components/Overlay'
 export { Toaster, type ToasterProps } from './components/Toaster'
 export {
+  ShortcutHelp,
+  ShortcutHost,
+  ShortcutList,
+  ShortcutProvider,
+  useShortcut,
+  useShortcutList,
+  useShortcutRegistry,
+  type ShortcutListProps,
+  type ShortcutProviderProps,
+} from './components/Shortcuts'
+export {
+  createShortcutRegistry,
+  defaultShortcutRegistry,
+  formatKey,
+  isEditableTarget,
+  matchesKey,
+  type Shortcut,
+  type ShortcutEntry,
+  type ShortcutRegistry,
+  type ShortcutScope,
+} from './lib/shortcuts'
+export {
   useToasts,
   type ToastOptions,
   type ToastRecord,

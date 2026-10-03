@@ -2116,6 +2116,41 @@ dialog.confirm-delete:not([open]) {
   margin-top: 1rem;
 }
 
+.nav-shortcuts {
+  display: grid;
+  gap: 1rem;
+}
+
+.nav-shortcuts__scope {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  color: var(--nav-color-text-muted);
+}
+
+.nav-shortcuts__list {
+  display: grid;
+  margin: 0;
+}
+
+.nav-shortcuts__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.375rem 0;
+  border-bottom: 1px solid var(--nav-color-border);
+}
+
+.nav-shortcuts__row dt {
+  margin: 0;
+}
+
+.nav-shortcuts__row dd {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0;
+}
+
 .nav-dialog__footer {
   display: flex;
   flex-wrap: wrap;
