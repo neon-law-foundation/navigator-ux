@@ -24,4 +24,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh cache delete --all || true
+        run: gh cache delete --all --succeed-on-no-caches
