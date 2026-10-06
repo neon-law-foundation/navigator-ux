@@ -52,7 +52,11 @@ describe('keyboard-shortcut overlay', () => {
         true,
       )
     })
-    cy.get('[data-testid=walk] input[aria-label=Name]').focus().type('Ada{ctrl}{enter}')
+    // Let the typed value settle before the shortcut: a Ctrl+Enter fired in the same
+    // breath as the last character reaches the Stepper before it has the name, so a
+    // slower runner sees the step refuse to advance.
+    cy.get('[data-testid=walk] input[aria-label=Name]').focus().type('Ada').should('have.value', 'Ada')
+    cy.get('[data-testid=walk] input[aria-label=Name]').type('{ctrl}{enter}')
     cy.wait(1000)
     cy.document().then((doc) => {
       const title = () => doc.querySelector('.nav-stepper__panel:not([hidden]) h2')?.textContent
@@ -61,7 +65,7 @@ describe('keyboard-shortcut overlay', () => {
         new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true, cancelable: true }),
       )
       cy.wait(500).then(() => {
-        throw new Error(`real Ctrl+Enter ignored; a synthetic one ${title() === 'Your name' ? 'was ignored too' : 'advanced to ' + title()}`)
+        throw new Error(`real Ctrl+Enter ignored; a synthetic one ${title() === 'Your name' ? 'was ignored too' : 'advanced to ' + title()} | hasFocus=${doc.hasFocus()} | keys=${(doc.defaultView as unknown as { receivedKeys: string[] }).receivedKeys.join(' ')}`)
       })
     })
     cy.document().should((doc) => {

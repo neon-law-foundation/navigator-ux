@@ -1,0 +1,27 @@
+name: Purge Actions caches
+
+# This repository stores no Actions caches: `setup-node` runs without
+# `cache: pnpm`, because a pnpm install of this package takes seconds and
+# every pull request ref saved its own 88 MB copy against the account's 2 GB
+# Actions storage. This job is the backstop — it deletes any cache that still
+# appears, so a future `cache:` line cannot quietly refill the quota.
+
+on:
+  schedule:
+    - cron: "17 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: delete every cache
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh cache delete --all --succeed-on-no-caches
