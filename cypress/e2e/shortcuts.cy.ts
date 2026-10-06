@@ -61,7 +61,7 @@ describe('keyboard-shortcut overlay', () => {
         new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true, cancelable: true }),
       )
       cy.wait(500).then(() => {
-        throw new Error(`real Ctrl+Enter ignored; a synthetic one ${title() === 'Your name' ? 'was ignored too' : 'advanced to ' + title()}`)
+        throw new Error(`real Ctrl+Enter ignored; a synthetic one ${title() === 'Your name' ? 'was ignored too' : 'advanced to ' + title()} | hasFocus=${doc.hasFocus()} | keys=${(doc.defaultView as unknown as { receivedKeys: string[] }).receivedKeys.join(' ')}`)
       })
     })
     cy.document().should((doc) => {
