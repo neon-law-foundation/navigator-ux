@@ -2345,6 +2345,14 @@ dialog.confirm-delete:not([open]) {
   cursor: pointer;
 }
 
+/* The reset above ties `.nav-tab.is-active` on specificity and comes later, so
+   without this the selected tab keeps its white label on a transparent
+   background and disappears on a light page. */
+.nav-tabs [role="tab"].is-active {
+  background: var(--nav-color-primary);
+  color: var(--nav-color-on-primary);
+}
+
 .nav-tabs [role="tab"]:disabled {
   opacity: 0.55;
   cursor: not-allowed;
