@@ -224,7 +224,7 @@ The matter surfaces, on the same tokens:
 | Record | `SourceThread`, `CiteTheRecord`, `RecordCite`, `ClaimTable`, `FactGrid`, `DownloadGrid`, `ActionList`, `Record`, `StatusStrip` |
 | Chat | `Chat`, `ChatComposer` |
 | Platform | `ThemeProvider`/`useTheme`, `SessionProvider`/`useSession`, `apiFetch` |
-| Testing | `@neon-law-source-code/navigator-ux/testing` — a Vitest setup file that fails a test on an axe violation, a `console.error`, or a request outside `/app/api`, and a `navigator-ux check` CLI for a consumer's CI; see [docs/consuming-the-library.md](./docs/consuming-the-library.md#default-tests-two-lines) |
+| Testing | `@neon-law-source-code/navigator-ux/testing` — a Vitest setup file that fails a test on an axe violation, a `console.error`, or a request outside `/app/api`; the same axe policy for a browser suite (`auditWithAxe`, `formatAxeReport`); and a `navigator-ux check` CLI for a consumer's CI; see [docs/consuming-the-library.md](./docs/consuming-the-library.md#default-tests-two-lines) |
 
 ### The page that shows one thing
 

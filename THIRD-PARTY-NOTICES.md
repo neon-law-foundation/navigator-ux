@@ -263,7 +263,7 @@ carries a bare `import("axe-core")` and no copy.
 
 | Package | License | Used by |
 | --- | --- | --- |
-| `axe-core` | MPL-2.0 | The accessibility check in `testing/setup`, and `expectNoAxeViolations` |
+| `axe-core` | MPL-2.0 | The accessibility check in `testing/setup`, and `expectNoAxeViolations` (and, as a devDependency, the browser gate, which injects the installed `axe.min.js` unmodified) |
 | `vitest` | MIT | The `beforeEach`/`afterEach` hooks `testing/setup` registers |
 | `@testing-library/react` | MIT | The cleanup `testing/setup` runs after its checks |
 

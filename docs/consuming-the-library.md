@@ -147,6 +147,30 @@ configureNavigatorTesting({ network: { allow: ['/assets/'] } }) // every test af
 await expectNoAxeViolations(container)           // explicit, without the setup file
 ```
 
+### The same audit in a browser
+
+The setup file runs axe in jsdom, which cannot see color or layout, so contrast is off there. A
+browser suite of your own can run the rest of the policy — WCAG 2.0/2.1 A and AA, `violations` fail,
+`incomplete` is reported except text over no declared background — with the same pieces this
+repository's gate uses (`cypress/e2e/accessibility.cy.ts`). Inject axe from your own
+`node_modules`, never a CDN, and run every audit in both color schemes:
+
+```ts
+import { auditWithAxe, formatAxeReport } from '@neon-law-source-code/navigator-ux/testing'
+
+cy.task('axeSource').then((source) => cy.window().then((win) => win.eval(source)))
+cy.window()
+  .then((win) => auditWithAxe(win.axe, win.document, 'main'))
+  .then((report) => {
+    const { failure, undecided } = formatAxeReport(report, 'on /matters')
+    if (undecided) cy.log(undecided)
+    if (failure) throw new Error(failure)
+  })
+```
+
+`AXE_RUN_OPTIONS`, `undecidableContrastFailures`, and the `describe*` helpers are exported too, for
+a runner that drives axe itself.
+
 **The CLI** runs against the repository, not the tests, and prints one line per check:
 
 | Check | Fails on |
