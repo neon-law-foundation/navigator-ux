@@ -226,6 +226,90 @@ describe('parseNotation lists', () => {
   })
 })
 
+/** Each unit as `path` → title (undefined when untitled), depth first. */
+function outlineOf(source: string) {
+  const walk = (sections: ReturnType<typeof parseNotation>, parent = ''): [string, string | undefined][] =>
+    sections.flatMap((section) => {
+      const path = parent ? `${parent}.${section.marker}` : section.marker
+      return [[path, section.title] as [string, string | undefined], ...walk(section.sections ?? [], path)]
+    })
+  return walk(parseNotationDocument(source).sections)
+}
+
+describe('marker-only headings', () => {
+  it('reads a bare marker the same with or without its period, for every marker type', () => {
+    for (const marker of ['I', 'IV', 'A', '1', '12', 'a']) {
+      const bare = parseNotationDocument(`## ${marker}\n\n${BODY}`).sections[0]
+      const dotted = parseNotationDocument(`## ${marker}.\n\n${BODY}`).sections[0]
+      expect(bare).toEqual(dotted)
+      expect(bare).toMatchObject({ marker, blocks: [{ text: BODY }] })
+      expect(bare?.title).toBeUndefined()
+    }
+  })
+
+  it('leaves an ordinary one-word heading alone', () => {
+    // An unmarked heading takes its depth from its `#` level, as it always has.
+    expect(outlineOf(`## I. ${SECTION_TITLE}\n\n${BODY}\n\n## Signatures\n\n${BODY}\n\n## Notes`)).toEqual([
+      ['I', SECTION_TITLE],
+      ['I.•', 'Signatures'],
+      ['I.•', 'Notes'],
+    ])
+  })
+
+  it('nests a Roman-numbered reply as I → I.A, IV', () => {
+    const source = ['## I', BODY, '### A', BODY, '### B', BODY, '## II', BODY, '## IV. Governing Law', BODY].join('\n\n')
+    expect(outlineOf(source)).toEqual([
+      ['I', undefined],
+      ['I.A', undefined],
+      ['I.B', undefined],
+      ['II', undefined],
+      ['IV', 'Governing Law'],
+    ])
+    expect(parseNotationDocument(source).sections.map((section) => section.id)).toEqual([
+      'section-i',
+      'section-ii',
+      'section-iv',
+    ])
+  })
+
+  it('reads a Roman-looking capital as a subsection when it follows the letter before it', () => {
+    const source = ['## III', '### A', '### B', '### C', '### D', '## IV. Governing Law'].join('\n\n')
+    expect(outlineOf(source)).toEqual([
+      ['III', undefined],
+      ['III.A', undefined],
+      ['III.B', undefined],
+      ['III.C', undefined],
+      ['III.D', undefined],
+      ['IV', 'Governing Law'],
+    ])
+  })
+
+  it('runs subsections A through M without breaking at a Roman letter', () => {
+    const letters = 'ABCDEFGHIJKLM'.split('')
+    const source = ['## I', ...letters.map((letter) => `### ${letter}`)].join('\n\n')
+    expect(outlineOf(source)).toEqual([['I', undefined], ...letters.map((letter) => [`I.${letter}`, undefined])])
+  })
+
+  it('keeps a Roman numeral at the top level when no letter precedes it', () => {
+    expect(outlineOf(['## I', '## II', '## V', '## X'].join('\n\n')).map(([path]) => path)).toEqual([
+      'I',
+      'II',
+      'V',
+      'X',
+    ])
+    // V after a section's subsections A–D is still the next Roman section.
+    const after = ['## IV', '### A', '### B', '### C', '### D', '## V'].join('\n\n')
+    expect(outlineOf(after).map(([path]) => path)).toEqual(['IV', 'IV.A', 'IV.B', 'IV.C', 'IV.D', 'V'])
+  })
+
+  it('reads I after H as a capital, with or without a period', () => {
+    for (const end of ['', '.']) {
+      const source = ['## I', '### G', '### H', `### I${end}`, '## II'].join('\n\n')
+      expect(outlineOf(source).map(([path]) => path)).toEqual(['I', 'I.G', 'I.H', 'I.I', 'II'])
+    }
+  })
+})
+
 describe('NotationViewer', () => {
   it('renders an empty outline when the source has no title, terms, or sections', () => {
     render(<NotationViewer source="" hrefForId={(id) => `#${id}`} />)

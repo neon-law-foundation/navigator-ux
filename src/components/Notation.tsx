@@ -49,8 +49,9 @@ export type NotationProps = NotationSourceProps | NotationSectionsProps
  * A notation on a page, as one collapsible document.
  *
  * A notation is a Markdown document: optional `---` frontmatter, a `#` title,
- * a preamble, then outline headings — `## I. Services`, `### A. …`, `## 1.`
- * for an uncaptioned clause — each followed by its copy. Render one from a
+ * a preamble, then outline headings — `## I. Services`, `### A. …`, or a
+ * bare marker such as `## 1` or `### a` for an uncaptioned clause (a trailing
+ * period is optional) — each followed by its copy. Render one from a
  * file with `import source from './agreement.md?raw'` and
  * `<Notation id="agreement" source={source} hrefForId={…} />`.
  *

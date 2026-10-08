@@ -2,25 +2,25 @@
 
 The responding party proposes the following clauses in reply.
 
-## 1.
+## 1
 
 The parties will meet within ten business days to settle the open points in
 the draft, and each party will bring a person with authority to agree them.
 
-### a.
+### a
 
 Each party circulates its written position at least two business days before
 the meeting.
 
-### b.
+### b
 
 The parties record any point they agree in a short memorandum that both sign.
 
-### c.
+### c
 
 A point the parties do not agree stays open and is carried to the next draft.
 
-## 2.
+## 2
 
 Nothing in this reply binds either party until a final agreement is signed.
 

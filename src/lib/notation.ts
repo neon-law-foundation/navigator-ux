@@ -48,7 +48,7 @@ function heading(line: string): ParsedHeading | undefined {
   const content = markdown?.[2] ?? line.trim()
   const numbered = content.match(
     markdown
-      ? /^([IVXLCDM]+|[A-Z]|\d+|[a-z])\.(?:\s+(.+?))?\s*$/
+      ? /^([IVXLCDM]+|[A-Z]|\d+|[a-z])(?:\.\s+(.+?)|\.?)\s*$/
       : /^([IVXLCDM]+|[A-Z]|[a-z])\.\s+(.+?)\s*$/,
   )
   if (numbered) {
@@ -118,8 +118,17 @@ export function parseNotation(markdown: string): HarvardOutlineSection[] {
     paragraph = undefined
   }
 
-  const addSection = (parsed: ParsedHeading) => {
+  const addSection = (found: ParsedHeading) => {
     flushParagraph()
+    // A lone C, D, I, L, M, V, or X reads as a Roman numeral, unless it is the
+    // letter after an open capital-letter unit's: C after B is a subsection.
+    const capital = [...stack].reverse().find((open) => open.depth === 2)?.section.marker
+    const follows =
+      found.depth === 1 &&
+      found.marker.length === 1 &&
+      capital?.length === 1 &&
+      capital.charCodeAt(0) + 1 === found.marker.charCodeAt(0)
+    const parsed = follows ? { ...found, depth: 2 } : found
     const base = slugify(parsed.title ?? parsed.marker)
     const count = (slugCounts.get(base) ?? 0) + 1
     slugCounts.set(base, count)
