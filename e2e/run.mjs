@@ -1,10 +1,15 @@
 /*
- * Start the fake OpenAPI backend and the harness, then run Cypress.
+ * Start the fake OpenAPI backend, the harness, and the gallery, then run
+ * Cypress.
  *
- * Both servers are child processes of this script so a failed spec still
+ * All three servers are child processes of this script so a failed spec still
  * tears them down. Cypress is given the harness origin as baseUrl.
  * neon-site.cy.ts renders the public-site specimen on that same origin
  * (`/neon` or the legacy `?showcase=neon` query) against gallery/content.
+ *
+ * accessibility.cy.ts audits the gallery itself, on its own origin. It runs on
+ * E2E_GALLERY_PORT rather than the gallery's usual 5174 so a `pnpm gallery`
+ * left running does not collide with it (both are strictPort).
  */
 
 import { spawn } from 'node:child_process'
@@ -14,6 +19,7 @@ import { fileURLToPath } from 'node:url'
 const pkg = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const API_PORT = process.env.E2E_API_PORT ?? '4010'
 const HARNESS_PORT = process.env.E2E_HARNESS_PORT ?? '5175'
+const GALLERY_PORT = process.env.E2E_GALLERY_PORT ?? '5176'
 
 function waitFor(url, { status = 200, timeoutMs = 30_000 } = {}) {
   const started = Date.now()
@@ -70,11 +76,24 @@ try {
   )
   kids.push(harness)
 
+  // The gallery's `pre*` hook, run by hand: the PdfViewer specimen loads a
+  // generated PDF that is never committed.
+  const specimens = child(process.execPath, ['scripts/generate-specimen-pdf.mjs'])
+  const generated = await new Promise((resolveCode) => specimens.on('exit', resolveCode))
+  if (generated !== 0) throw new Error('could not generate the gallery specimens')
+  const gallery = child('pnpm', [
+    'exec', 'vite', '--config', 'vite.gallery.config.ts',
+    '--host', '127.0.0.1', '--port', GALLERY_PORT, '--strictPort',
+  ])
+  kids.push(gallery)
+
   await waitFor(`http://127.0.0.1:${API_PORT}/`)
   await waitFor(`http://127.0.0.1:${HARNESS_PORT}/`)
+  await waitFor(`http://127.0.0.1:${GALLERY_PORT}/`)
 
-  const cypress = child('pnpm', ['exec', 'cypress', 'run'], {
+  const cypress = child('pnpm', ['exec', 'cypress', 'run', ...process.argv.slice(2)], {
     CYPRESS_BASE_URL: `http://127.0.0.1:${HARNESS_PORT}`,
+    CYPRESS_GALLERY_URL: `http://127.0.0.1:${GALLERY_PORT}`,
   })
   const code = await new Promise((resolveCode) => {
     cypress.on('exit', (exitCode) => resolveCode(exitCode ?? 1))

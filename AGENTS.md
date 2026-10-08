@@ -69,7 +69,7 @@ pnpm check:catalog      # the vendored marketing catalog matches its digest and 
 pnpm check:bundle       # no off-origin reference in the built bundle (needs dist)
 pnpm test               # vitest, once
 pnpm test:coverage      # coverage report + threshold gate
-pnpm test:e2e           # Cypress against the fake OpenAPI backend (not in check)
+pnpm test:e2e           # Cypress: the fake OpenAPI backend, and the axe gate over the gallery (not in check)
 ```
 
 `check` is what CI runs. Build precedes typecheck. That order is not load-bearing
@@ -260,6 +260,14 @@ because pnpm links into this package's `node_modules` only what it declares: an 
 import resolves in this repository and fails from inside a consumer's install. `check:packed-consumer`
 is what would notice. axe-core is MPL-2.0; why that is compatible is in `THIRD-PARTY-NOTICES.md`.
 
+**axe-core is pinned to exactly 4.10.2 because Navigator vendors 4.10.2.** The accessibility policy
+— the tags, what fails, what is only reported — is Navigator's, ported into
+`src/testing/axe-report.ts` so the jsdom hook, this repository's browser gate
+(`cypress/e2e/accessibility.cy.ts`), and a consumer's own suite apply one rule. A newer axe adds and
+sharpens rules, so a floating range would let a component pass here and fail there. Move the pin when
+Navigator moves its vendored copy, not before. The optional peer range stays `>=4.10.2 <5`: a
+consumer's own pin is theirs.
+
 **The CLI is plain `.mjs` in `src/cli/`, not TypeScript, because two programs run it.** The gates in
 `scripts/` import it under bare `node` before anything is built, and `emit-cli.mjs` copies it into
 `dist` unchanged for the `navigator-ux` bin. Hand-written `.d.mts` files give the suite its types,
@@ -370,8 +378,9 @@ not the string. Writing the string back in is what re-couples a spec to a draw.
 
 This replaced a hand-written identity — `Northwind`, `Vance v. Northwind` — that had itself replaced
 a real client's. Both rounds were needed, and the second is why: `src/test/feed.test.tsx` was still
-carrying a sitting judge and a practicing attorney, lifted from a real docket, because `Feed` is the
-one component with no gallery specimen and nobody ever reviewed its fixture. Hand-written fictional
+carrying a sitting judge and a practicing attorney, lifted from a real docket, because `Feed` then had
+no gallery specimen and nobody ever reviewed its fixture. (Every export has one now, and
+`src/test/gallery-coverage.test.ts` keeps it that way.) Hand-written fictional
 data does not stay fictional — a fixture is a place a real docket can be pasted, and it was.
 
 What generating a name **does not** buy is a guarantee it belongs to nobody: faker composes from real

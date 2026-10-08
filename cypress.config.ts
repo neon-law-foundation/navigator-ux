@@ -1,10 +1,11 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { parse } from 'yaml'
 import { defineConfig } from 'cypress'
 
 /*
- * Specs share one origin: the fake OpenAPI harness (CYPRESS_BASE_URL, :5175).
+ * Specs share one origin: the fake OpenAPI harness (CYPRESS_BASE_URL, :5175) — except accessibility.cy.ts, which
+ * audits the gallery on its own (CYPRESS_GALLERY_URL, :5176).
  * neon-site.cy.ts visits `/neon` (legacy `?showcase=neon` still parses) on that origin and asserts copy from
  * gallery/content/en.yaml plus the Markdown page files.
  *
@@ -34,9 +35,27 @@ function pageDoc(name: string) {
   return { matter: parse(match[1]), body: (match[2] ?? '').trim() }
 }
 
+/*
+ * The brand layers accessibility.cy.ts audits, read from the sheets on disk
+ * rather than listed in the spec, so a brand added to gallery/brands/ enters
+ * the gate by existing. `faces.css` is the shared @font-face file every brand
+ * draws on, not a brand.
+ */
+function galleryBrandSheets(): string[] {
+  return readdirSync(resolve(root, 'gallery/brands'))
+    .filter((file) => file.endsWith('.css') && file !== 'faces.css')
+    .map((file) => file.slice(0, -'.css'.length))
+    .sort()
+}
+
 export default defineConfig({
   e2e: {
     baseUrl: process.env.CYPRESS_BASE_URL ?? 'http://127.0.0.1:5175',
+    // accessibility.cy.ts audits the gallery on its own origin; e2e/run.mjs starts it.
+    expose: {
+      GALLERY_URL: process.env.CYPRESS_GALLERY_URL ?? 'http://127.0.0.1:5176',
+      GALLERY_BRANDS: galleryBrandSheets(),
+    },
     specPattern: 'cypress/e2e/**/*.cy.ts',
     supportFile: false,
     video: false,
@@ -61,6 +80,15 @@ export default defineConfig({
         /** The pinned catalog itself, so a spec can assert the rendered page carries it. */
         neonCatalog() {
           return catalog
+        },
+        /** The axe build the gate injects, from the installed devDependency — never a CDN. */
+        axeSource() {
+          return readFileSync(resolve(root, 'node_modules/axe-core/axe.min.js'), 'utf8')
+        },
+        /** Print to the terminal running Cypress, so a CI log carries what axe could not decide. */
+        log(message: string) {
+          process.stdout.write(`${message}\n`)
+          return null
         },
       })
     },
