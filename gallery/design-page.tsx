@@ -1,3 +1,5 @@
+// Not `design.tsx`: the gallery's dev server resolves `/design` to a module of
+// that name before its SPA fallback, so the route answered with JavaScript.
 import { useState } from 'react'
 
 import {

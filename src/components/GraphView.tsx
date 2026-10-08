@@ -255,7 +255,9 @@ export function GraphView({
         <svg
           className="nav-graph__canvas"
           viewBox={`0 0 ${WIDTH} ${height}`}
-          role="img"
+          // `group`, not `img`: an image's children are presentational, which
+          // would hide every node button inside it from assistive technology.
+          role="group"
           aria-label={`${label}. ${visibleNodes.length} nodes, ${visibleEdges.length} connections.`}
         >
           <g>

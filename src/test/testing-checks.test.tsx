@@ -30,8 +30,8 @@ describe('expectNoAxeViolations', () => {
     await expect(expectNoAxeViolations(container.querySelector('button')!)).resolves.toBeUndefined()
 
     const failure = expectNoAxeViolations(container)
-    await expect(failure).rejects.toThrow(/image-alt \(critical\)/)
-    await expect(failure).rejects.toThrow(/^ {4}img$/m)
+    await expect(failure).rejects.toThrow(/\[critical\] image-alt/)
+    await expect(failure).rejects.toThrow(/ — at img$/m)
   })
 
   it('defaults to document.body and takes axe options', async () => {
@@ -47,7 +47,7 @@ describe('expectNoAxeViolations', () => {
     const text = formatAxeViolations([
       { id: 'x', impact: null, help: 'Help', helpUrl: 'about:blank', nodes: [{ target: ['p'] }] },
     ] as unknown as Parameters<typeof formatAxeViolations>[0])
-    expect(text).toContain('x (unknown impact): Help')
+    expect(text).toContain('[unknown] x: Help — at p')
   })
 
   it('says how to proceed when axe-core is missing', async () => {
@@ -109,7 +109,7 @@ describe('beginTest and endTest', () => {
     const failure = endTest()
     await expect(failure).rejects.toThrow(/console.error was called 1 time\(s\):\n\n {2}a real one\n\n/)
     await expect(failure).rejects.toThrow(/cdn\.example\.com\/x\.js leaves the page's origin/)
-    await expect(failure).rejects.toThrow(/button-name \(critical\)/)
+    await expect(failure).rejects.toThrow(/\[critical\] button-name/)
   })
 
   it('does nothing when no test was begun', async () => {

@@ -224,11 +224,15 @@ export function ChoiceGroup({
     .join(' ')
 
   return (
+    // `aria-required` is not allowed on a fieldset's implicit `group` role, so
+    // a single choice takes `radiogroup`, which carries it. Several choices
+    // have no role that does; their legend says "required" in words instead.
     <fieldset
       className={classes}
+      role={multiple ? undefined : 'radiogroup'}
       aria-describedby={describedBy}
       aria-invalid={error ? true : undefined}
-      aria-required={required || undefined}
+      aria-required={required && !multiple ? true : undefined}
     >
       <legend className={legendHidden ? 'nav-choice-group__legend nav-visually-hidden' : 'nav-choice-group__legend'}>
         {legend}
@@ -238,6 +242,7 @@ export function ChoiceGroup({
             *
           </span>
         ) : null}
+        {required && multiple ? <span className="nav-visually-hidden"> (required)</span> : null}
       </legend>
       <div className="nav-choice-group__options">
         {choices.map((choice) => {

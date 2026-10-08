@@ -1,14 +1,16 @@
 import type { AxeResults, RunOptions } from 'axe-core'
 import { API_PREFIX } from '../api/client'
 import { SESSION_ENDPOINT } from '../session/session'
+import { AXE_RUN_OPTIONS, describeAxeResult } from './axe-report'
 
 /**
  * The checks behind `@neon-law-source-code/navigator-ux/testing/setup`, which
  * a consumer adds to Vitest's `setupFiles` so every test in its suite fails on
  * three things a reviewer cannot see in a diff:
  *
- * 1. **An accessibility violation in what the test rendered**, by axe-core.
- *    Rules jsdom cannot evaluate are off, because a rule that cannot see the
+ * 1. **An accessibility violation in what the test rendered**, by axe-core,
+ *    under the policy in `axe-report.ts` — WCAG 2.0/2.1 A and AA, the same
+ *    tags a browser gate runs. Rules jsdom cannot evaluate are off, because a rule that cannot see the
  *    page reports noise or nothing: `color-contrast` and `link-in-text-block`
  *    need computed colors and a canvas, and jsdom paints neither (the canvas
  *    probe is also what prints "Not implemented: getContext" on every run);
@@ -89,19 +91,12 @@ async function loadAxe(): Promise<Axe> {
 function axeOptions(extra: RunOptions | undefined, allowed: Iterable<string> = []): RunOptions {
   const rules: NonNullable<RunOptions['rules']> = {}
   for (const id of [...JSDOM_DISABLED_RULES, ...allowed]) rules[id] = { enabled: false }
-  return { ...extra, rules: { ...rules, ...extra?.rules } }
+  return { ...AXE_RUN_OPTIONS, ...extra, rules: { ...rules, ...extra?.rules } }
 }
 
-/** One readable block per violation: rule, impact, what it means, and where. */
+/** One readable block per violation: the shared one-line description, then the rule's page. */
 export function formatAxeViolations(violations: Violation[]): string {
-  const blocks = violations.map((violation) => {
-    const targets = violation.nodes.map((node) => `    ${node.target.join(' ')}`)
-    return [
-      `  ${violation.id} (${violation.impact ?? 'unknown impact'}): ${violation.help}`,
-      ...targets,
-      `    ${violation.helpUrl}`,
-    ].join('\n')
-  })
+  const blocks = violations.map((violation) => `  ${describeAxeResult(violation)}\n    ${violation.helpUrl}`)
   return `axe found ${violations.length} accessibility violation(s):\n\n${blocks.join('\n\n')}`
 }
 

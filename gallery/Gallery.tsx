@@ -3,6 +3,7 @@ import { ShadcnSet } from './ShadcnSet'
 import { ShadcnWaveTwo } from './ShadcnWaveTwo'
 import { FocusSet } from './FocusSet'
 import { ChatSet } from './ChatSet'
+import { MatterSet } from './MatterSet'
 import { Showcase } from './Showcase'
 
 // The library itself, from source. Editing a component re-renders this page.
@@ -606,6 +607,10 @@ export function Gallery() {
 
         <SectionGroup name="Copilot">
           <ChatSet Section={Section} />
+        </SectionGroup>
+
+        <SectionGroup name="Matter record">
+          <MatterSet Section={Section} />
         </SectionGroup>
       </ComponentPages>
       </GalleryFrame>

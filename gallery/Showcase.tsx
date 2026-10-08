@@ -36,7 +36,7 @@ import {
   TextareaField,
   TextField,
 } from '../src/index'
-import { DesignPage } from './design'
+import { DesignPage } from './design-page'
 import { MOTION_SECTIONS, RECORD_CITATIONS } from './outline-specimen'
 import { NeonSite } from './neon-site'
 import { PageCardArt, PageFigurePanel } from './page-figures'
@@ -371,7 +371,7 @@ function PageDocument({ page }: { page: SamplePage }) {
           <PageForm page={page} />
         </Panel>
         <Panel title={asylum ? 'I-589 packet preview' : 'Draft packet preview'} note="Static specimen surface">
-          <div className="showcase__paper" aria-label="Sample document preview">
+          <div className="showcase__paper" role="figure" aria-label="Sample document preview">
             <span className="showcase__paper-kicker">Navigator UX · sample</span>
             <h3>{asylum ? 'Application for Asylum and for Withholding of Removal' : page.title}</h3>
             <p>Prepared from saved answers. Review required before submission.</p>

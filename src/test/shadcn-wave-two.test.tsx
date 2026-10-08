@@ -1003,7 +1003,7 @@ const EDGES = [
 describe('GraphView', () => {
   it('reports its size to a reader who cannot see it', () => {
     render(<GraphView nodes={NODES} edges={EDGES} label="Record graph" />)
-    expect(screen.getByRole('img')).toHaveAccessibleName(
+    expect(screen.getByRole('group', { name: /connections\./ })).toHaveAccessibleName(
       'Record graph. 3 nodes, 2 connections.',
     )
   })
@@ -1013,12 +1013,12 @@ describe('GraphView', () => {
     render(<GraphView nodes={NODES} edges={EDGES} label="Record graph" />)
 
     await user.click(screen.getByRole('button', { name: 'party' }))
-    expect(screen.getByRole('img')).toHaveAccessibleName(
+    expect(screen.getByRole('group', { name: /connections\./ })).toHaveAccessibleName(
       'Record graph. 1 nodes, 0 connections.',
     )
 
     await user.click(screen.getByRole('button', { name: 'party' }))
-    expect(screen.getByRole('img')).toHaveAccessibleName(
+    expect(screen.getByRole('group', { name: /connections\./ })).toHaveAccessibleName(
       'Record graph. 3 nodes, 2 connections.',
     )
   })
@@ -1079,7 +1079,7 @@ describe('GraphView dragging', () => {
     fireEvent.pointerUp(node, { pointerId: 1 })
 
     // The graph is still readable afterwards — the drag did not detach it.
-    expect(screen.getByRole('img')).toHaveAccessibleName(
+    expect(screen.getByRole('group', { name: /connections\./ })).toHaveAccessibleName(
       'Record graph. 3 nodes, 2 connections.',
     )
   })
@@ -1102,6 +1102,6 @@ describe('GraphView dragging', () => {
         label="Sparse"
       />,
     )
-    expect(screen.getByRole('img')).toHaveAccessibleName('Sparse. 1 nodes, 0 connections.')
+    expect(screen.getByRole('group', { name: /connections\./ })).toHaveAccessibleName('Sparse. 1 nodes, 0 connections.')
   })
 })
