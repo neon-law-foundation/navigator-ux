@@ -13,10 +13,10 @@ additionally forbids relicensing the font. That is what this file is for — a c
 source is courtesy, not compliance. The font notice travels twice: the build also copies `OFL.txt`
 into `dist` beside the woff2 files, because consumers receive `dist` and never see this file.
 
-**Runtime dependencies** — listed under [Runtime dependencies](#runtime-dependencies). None of their
-code is in this repository or in `dist`, so none of their notices travel with what we publish. They
-are recorded anyway, because the question a reader has is what the package pulls in, and answering
-"look at the lockfile" is not an answer.
+**Runtime dependencies and optional peers** — listed under [Runtime dependencies](#runtime-dependencies).
+None of their code is in this repository or in `dist`, so none of their notices travel with what we
+publish. They are recorded anyway, because the question a reader has is what the package pulls in,
+and answering "look at the lockfile" is not an answer.
 
 The two MIT sources sit inside an Apache-2.0 whole without tension; the notices below are what
 that costs. **The typeface is different.** The OFL requires the font software to be distributed
@@ -255,10 +255,31 @@ The d3 modules pull in further d3 packages transitively — `internmap`, `d3-dis
 them is ISC as well. Mike Bostock's d3 family is uniformly ISC, which is why this table stays short
 and why adding another d3 module is not a licensing decision.
 
-ISC and Apache-2.0 both sit inside an Apache-2.0 whole without question, so nothing here constrains
-the project's license. It was not always so simple: under the copyleft licenses this project carried
-before, Apache-2.0 code could enter an AGPLv3 work but not a GPLv2 one, and nothing in CI would have
-noticed. If the license ever moves again, this table is the list to re-verify.
+### Optional peers of `./testing`
+
+The `@neon-law-source-code/navigator-ux/testing` entry imports three packages it does not install.
+They are optional `peerDependencies`, externalized like the runtime dependencies, so `dist/testing/`
+carries a bare `import("axe-core")` and no copy.
+
+| Package | License | Used by |
+| --- | --- | --- |
+| `axe-core` | MPL-2.0 | The accessibility check in `testing/setup`, and `expectNoAxeViolations` |
+| `vitest` | MIT | The `beforeEach`/`afterEach` hooks `testing/setup` registers |
+| `@testing-library/react` | MIT | The cleanup `testing/setup` runs after its checks |
+
+**axe-core is the one copyleft license anywhere in this package's graph, and it does not reach this
+project.** MPL-2.0 is file-level copyleft: its obligations attach to the MPL-licensed files and to
+modifications of them, and a work that merely combines with them — a Larger Work, in its terms — may
+be under any license (MPL-2.0 §3.3). This package neither copies nor modifies an axe-core file: the
+build externalizes it, and the consumer's installer places the unmodified package, with its own
+license, in the consumer's tree. Were axe-core ever vendored or patched here, those files would stay
+MPL-2.0 with the obligations §3 attaches to them, and this paragraph would need revisiting.
+
+ISC, MIT, and Apache-2.0 sit inside an Apache-2.0 whole without question, and MPL-2.0 sits beside it
+for the reason above, so nothing here constrains the project's license. It was not always so simple:
+under the copyleft licenses this project carried before, Apache-2.0 code could enter an AGPLv3 work
+but not a GPLv2 one, and nothing in CI would have noticed. If the license ever moves again, these
+tables are the list to re-verify.
 
 ## Not covered here
 

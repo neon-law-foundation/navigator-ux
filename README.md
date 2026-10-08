@@ -19,7 +19,7 @@ download URL — no registry account, no token, and no `.npmrc`:
 pnpm add https://github.com/neon-law-source-code/navigator-ux/releases/download/v0.7.0/navigator-ux-v0.7.0.tgz
 ```
 
-React 19 is the only peer dependency. Runtime dependencies come with the package and your
+React 19 is the only required peer dependency; `./testing` has optional ones. Runtime dependencies come with the package and your
 installer resolves them: `d3-array`, `d3-scale`, and `d3-shape` for the charts, `d3-geo` and
 `topojson-client` for `WorldMap`, `d3-force` for `GraphView`, and `pdfjs-dist` for `PdfViewer`. They
 are externalized in the build rather than bundled, so an app that already uses one of them resolves a
@@ -224,6 +224,7 @@ The matter surfaces, on the same tokens:
 | Record | `SourceThread`, `CiteTheRecord`, `RecordCite`, `ClaimTable`, `FactGrid`, `DownloadGrid`, `ActionList`, `Record`, `StatusStrip` |
 | Chat | `Chat`, `ChatComposer` |
 | Platform | `ThemeProvider`/`useTheme`, `SessionProvider`/`useSession`, `apiFetch` |
+| Testing | `@neon-law-source-code/navigator-ux/testing` — a Vitest setup file that fails a test on an axe violation, a `console.error`, or a request outside `/app/api`, and a `navigator-ux check` CLI for a consumer's CI; see [docs/consuming-the-library.md](./docs/consuming-the-library.md#default-tests-two-lines) |
 
 ### The page that shows one thing
 
@@ -349,7 +350,7 @@ coverage:
 | `pnpm lint` | oxlint errors. Warnings do not fail; the expected count is three. |
 | `pnpm check:tokens` | Any literal color outside the token layer — including a named one. |
 | `pnpm check:type` | A font weight that is not 400 or 700, or a radius that is neither a token nor geometry. |
-| `pnpm check:contrast` | Any palette pairing under its WCAG floor, recomputed from `tokens.css`. |
+| `pnpm check:contrast` | Any palette pairing under its WCAG floor, recomputed from `tokens.css` and from each `gallery/brands/` sheet layered on it. |
 | `pnpm check:api` | A stale generated schema, or a path in `spec/openapi.json` that leaves `/app/api`. |
 | `pnpm check:bundle` | Any off-origin reference in `dist`. Runs after the build, where a remote URL would appear. |
 | `pnpm test:coverage` | Coverage under 90% on statements, lines, functions, or branches. |
@@ -433,6 +434,7 @@ repository or the package. What ships is Source Serif 4 — see [Typography](#ty
 ### Third-party material
 
 The bundled typeface stays under the SIL Open Font License 1.1, two sources are MIT, the world
-outline is Natural Earth, and the runtime dependencies are externalized rather than bundled. Each is
+outline is Natural Earth, and the runtime dependencies — and the optional peers of `./testing`, one of
+them MPL-2.0 — are externalized rather than bundled. Each is
 listed with its notice in [THIRD-PARTY-NOTICES.md](./THIRD-PARTY-NOTICES.md), which also records what
 the project's license does not reach.
