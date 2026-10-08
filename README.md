@@ -220,7 +220,7 @@ The matter surfaces, on the same tokens:
 | Chrome | `CaseNav`, `Shell`, `CaseHead`, `Layout`, `Stack`, `ReviewNav` |
 | Primitives | `Panel`, `Badge`, `Button`, `LinkButton`, `ButtonRow`, `Callout` |
 | Review | `Decision`, `DecisionGrid`, `DraftCard`, `AuthorityList`, `AuthorityDialog`, `HarvardOutlineViewer` |
-| Notation | `NotationViewer` renders a notation template with mount-aware Contents links; `parseNotation` turns Markdown into outline blocks; `deriveNotationChecklist` creates review steps from holds and blanks |
+| Notation | `Notation` renders a notation — Markdown with optional frontmatter, a `#` title, and outline headings such as `## I. Services` or a bare `## 1.` — as one collapsible document with a rail, from `import source from './x.md?raw'`; every unit is anchored (`section-ii`, `section-1-a`) and a link into it opens it. `NotationViewer` renders the same source as the whole page, title and open terms included; `parseNotation` turns Markdown into outline blocks; `deriveNotationChecklist` creates review steps from holds and blanks |
 | Record | `SourceThread`, `CiteTheRecord`, `RecordCite`, `ClaimTable`, `FactGrid`, `DownloadGrid`, `ActionList`, `Record`, `StatusStrip` |
 | Chat | `Chat`, `ChatComposer` |
 | Platform | `ThemeProvider`/`useTheme`, `SessionProvider`/`useSession`, `apiFetch` |

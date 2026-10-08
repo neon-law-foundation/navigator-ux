@@ -30,7 +30,9 @@ import {
   NavBadge,
   NavButton,
   NavLinkButton,
+  Notation,
   NotationViewer,
+  ShortcutHost,
   NavigatorFooter,
   NavigatorNavbar,
   NavigatorShell,
@@ -53,6 +55,8 @@ import {
   Toast,
   type DataColumn,
 } from '../src/index'
+import REPLY_DRAFT from '../fixtures/notation/reply-draft.md?raw'
+import SERVICES_AGREEMENT from '../fixtures/notation/services-agreement.md?raw'
 import { CFO, CLIENT, DEFENDANT_SHORT, LAWYER } from '../fixtures/matter.mjs'
 import {
   GENERATED_NOTATION,
@@ -468,6 +472,25 @@ export function Gallery() {
           <NotationViewer
             source={NOTATION_TEMPLATE_SOURCE}
             hrefForId={(id) => `${window.location.pathname}${window.location.search}#${id}`}
+          />
+        </Section>
+
+        <Section
+          title="Notation"
+          note="Two notation files as collapsible documents: Roman sections with wrapped numbered lists, and uncaptioned clauses whose markers hang beside their copy. A link into either opens it; with one open on screen, ↑ and ↓ step through its units."
+        >
+          <ShortcutHost />
+          <Notation
+            id="specimen-services-agreement"
+            source={SERVICES_AGREEMENT}
+            hrefForId={(id) => `${window.location.pathname}${window.location.search}#${id}`}
+            defaultOpen
+          />
+          <Notation
+            id="specimen-reply-draft"
+            source={REPLY_DRAFT}
+            hrefForId={(id) => `${window.location.pathname}${window.location.search}#${id}`}
+            after={<p className="gallery__note">Signature block</p>}
           />
         </Section>
 

@@ -30,6 +30,13 @@ export interface Shortcut {
    * `Mod+Enter` is not typing, so it opts in.
    */
   allowInEditable?: boolean
+  /**
+   * Take the key only while this returns true. When it returns false the key is
+   * not handled at all, so the browser's own action — scrolling, for an arrow —
+   * goes ahead. Several registrations may share a key this way, each claiming
+   * it only when it applies; the overlay lists them once.
+   */
+  when?: (event: KeyboardEvent) => boolean
 }
 
 /** What the overlay shows: a registration without its handler. */
@@ -43,7 +50,7 @@ export interface ShortcutRegistryOptions {
 export interface ShortcutRegistry {
   /** Add a shortcut; the returned function removes exactly that registration. */
   register: (shortcut: Shortcut) => () => void
-  /** Every registered shortcut, global before page, in registration order. */
+  /** Every registered shortcut, global before page, in registration order, each listed once. */
   list: () => readonly ShortcutEntry[]
   /** Called after every change to the list. Returns the unsubscribe. */
   subscribe: (listener: () => void) => () => void
@@ -146,8 +153,15 @@ export function createShortcutRegistry({
   }
 
   const publish = () => {
+    const seen = new Set<string>()
     snapshot = registrations
       .map(({ key, description, scope }): ShortcutEntry => ({ key, description, scope }))
+      .filter((entry) => {
+        const id = `${entry.scope}\n${entry.key}\n${entry.description}`
+        if (seen.has(id)) return false
+        seen.add(id)
+        return true
+      })
       .sort((a, b) => SCOPE_ORDER[a.scope] - SCOPE_ORDER[b.scope])
     listeners.forEach((listener) => listener())
   }
@@ -157,7 +171,8 @@ export function createShortcutRegistry({
     pool.filter((shortcut) => {
       if (editable && !shortcut.allowInEditable) return false
       const step = chordSteps(shortcut.key)[matched]
-      return step !== undefined && matchesKey(step, event)
+      if (step === undefined || !matchesKey(step, event)) return false
+      return shortcut.when?.(event) ?? true
     })
 
   return {

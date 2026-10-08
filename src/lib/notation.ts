@@ -20,7 +20,10 @@ interface MutableSection extends HarvardOutlineSection {
 interface PendingBlock {
   type: HarvardOutlineBlock['type']
   text: string
+  number?: number
 }
+
+const LIST_TYPES = new Set<HarvardOutlineBlock['type']>(['list-item', 'ordered-list-item'])
 
 const romanMarker = /^[IVXLCDM]+$/
 
@@ -33,18 +36,25 @@ function slugify(value: string): string {
     .replace(/^-|-$/g, '') || 'section'
 }
 
-function heading(line: string): { marker: string; title: string; depth: number } | undefined {
+interface ParsedHeading {
+  marker: string
+  /** Absent for a Markdown heading that carries only its marker (`## 1.`). */
+  title?: string
+  depth: number
+}
+
+function heading(line: string): ParsedHeading | undefined {
   const markdown = line.match(/^\s*(#{1,6})\s+(.+?)\s*#*\s*$/)
   const content = markdown?.[2] ?? line.trim()
   const numbered = content.match(
     markdown
-      ? /^([IVXLCDM]+|[A-Z]|\d+|[a-z])\.\s+(.+?)\s*$/
+      ? /^([IVXLCDM]+|[A-Z]|\d+|[a-z])\.(?:\s+(.+?))?\s*$/
       : /^([IVXLCDM]+|[A-Z]|[a-z])\.\s+(.+?)\s*$/,
   )
   if (numbered) {
     const marker = numbered[1]!
     const depth = romanMarker.test(marker) ? 1 : /^[A-Z]$/.test(marker) ? 2 : /^\d+$/.test(marker) ? 3 : 4
-    return { marker, title: numbered[2]!, depth }
+    return numbered[2] ? { marker, title: numbered[2], depth } : { marker, depth }
   }
   if (!markdown) return undefined
   return { marker: '•', title: content, depth: markdown[1]!.length }
@@ -74,46 +84,60 @@ function inlineRuns(text: string, blockId: string): HarvardOutlineRun[] {
   return runs
 }
 
-function blockFrom(text: string, type: HarvardOutlineBlock['type'], section: MutableSection): void {
+function blockFrom(
+  text: string,
+  type: HarvardOutlineBlock['type'],
+  section: MutableSection,
+  sourceNumber?: number,
+): void {
   const number = section.blocks.length + 1
   section.blocks.push({
     id: `${section.id}-${number}`,
     type,
     text,
     runs: inlineRuns(text, `${section.id}-${number}`),
+    ...(sourceNumber === undefined ? {} : { number: sourceNumber }),
   })
 }
 
 export function parseNotation(markdown: string): HarvardOutlineSection[] {
   const roots: MutableSection[] = []
-  const stack: MutableSection[] = []
+  const stack: { section: MutableSection; depth: number }[] = []
   const slugCounts = new Map<string, number>()
   let active: MutableSection | undefined
   let paragraph: PendingBlock | undefined
 
+  // A list item stays pending like a paragraph, so the lines that continue it
+  // join it: a lazy line straight after it, or an indented one after a blank.
+  let blankAfterItem = false
+
   const flushParagraph = () => {
+    blankAfterItem = false
     if (!paragraph || !active) return
-    blockFrom(paragraph.text, paragraph.type, active)
+    blockFrom(paragraph.text, paragraph.type, active, paragraph.number)
     paragraph = undefined
   }
 
-  const addSection = (parsed: { marker: string; title: string; depth: number }) => {
+  const addSection = (parsed: ParsedHeading) => {
     flushParagraph()
-    const base = slugify(parsed.title)
+    const base = slugify(parsed.title ?? parsed.marker)
     const count = (slugCounts.get(base) ?? 0) + 1
     slugCounts.set(base, count)
     const section: MutableSection = {
       id: count === 1 ? base : `${base}-${count}`,
       marker: parsed.marker,
-      title: parsed.title,
+      ...(parsed.title === undefined ? {} : { title: parsed.title }),
       sections: [],
       blocks: [],
     }
-    while (stack.length >= parsed.depth) stack.pop()
-    const parent = stack[stack.length - 1]
+    // A unit nests under the nearest open unit of a shallower depth, so a
+    // skipped level (an Arabic clause with no Roman section above it) still
+    // nests by its marker rather than by how many units are open.
+    while ((stack[stack.length - 1]?.depth ?? 0) >= parsed.depth) stack.pop()
+    const parent = stack[stack.length - 1]?.section
     if (parent) parent.sections.push(section)
     else roots.push(section)
-    stack.push(section)
+    stack.push({ section, depth: parsed.depth })
     active = section
   }
 
@@ -123,10 +147,19 @@ export function parseNotation(markdown: string): HarvardOutlineSection[] {
 
   for (const sourceLine of markdown.replace(/\r\n?/g, '\n').split('\n')) {
     const line = sourceLine.trim()
+    const item = paragraph && LIST_TYPES.has(paragraph.type)
     if (!line) {
-      flushParagraph()
+      if (item) blankAfterItem = true
+      else flushParagraph()
       continue
     }
+    const starts = /^(?:\d+[.)]\s|[-+*]\s|>)/.test(line) || /^\[.*\]$/.test(line)
+    if (item && !starts && (blankAfterItem ? /^\s{2,}/.test(sourceLine) : !heading(sourceLine))) {
+      paragraph!.text += ` ${line}`
+      blankAfterItem = false
+      continue
+    }
+    if (blankAfterItem) flushParagraph()
     const parsedHeading = heading(sourceLine)
     if (parsedHeading) {
       addSection(parsedHeading)
@@ -149,11 +182,16 @@ export function parseNotation(markdown: string): HarvardOutlineSection[] {
       blockFrom(hold[1]!, 'hold', active!)
       continue
     }
-    const orderedItem = line.match(/^\d+[.)]\s+(.+)$/)
+    const orderedItem = line.match(/^(\d+)[.)]\s+(.+)$/)
     const listItem = line.match(/^[-+*]\s+(.+)$/)
-    if (orderedItem || listItem) {
+    if (orderedItem) {
       flushParagraph()
-      blockFrom(orderedItem ? orderedItem[1]! : listItem![1]!, orderedItem ? 'ordered-list-item' : 'list-item', active!)
+      paragraph = { type: 'ordered-list-item', text: orderedItem[2]!, number: Number(orderedItem[1]) }
+      continue
+    }
+    if (listItem) {
+      flushParagraph()
+      paragraph = { type: 'list-item', text: listItem[1]! }
       continue
     }
     if (paragraph?.type === 'paragraph') paragraph.text += ` ${line}`
