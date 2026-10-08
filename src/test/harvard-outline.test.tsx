@@ -1,7 +1,7 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { act } from 'react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fakeCompany, fakeLastName } from '../../fixtures/fake.mjs'
 import {
   CiteTheRecord,
@@ -94,23 +94,43 @@ describe('locateQuote', () => {
   })
 })
 
-describe('HarvardOutlineViewer', () => {
-  let ioCallback: IntersectionObserverCallback | undefined
-
-  beforeEach(() => {
-    ioCallback = undefined
-    vi.stubGlobal(
-      'IntersectionObserver',
-      class {
-        observe = vi.fn()
-        unobserve = vi.fn()
-        disconnect = vi.fn()
-        constructor(callback: IntersectionObserverCallback) {
-          ioCallback = callback
-        }
-      },
+/** Place the document pane and named units at these viewport tops. */
+function layOut(tops: Record<string, number>) {
+  for (const [id, top] of Object.entries(tops)) {
+    const node =
+      id === 'doc'
+        ? document.querySelector('.harvard-outline__doc')!
+        : document.querySelector(`article[data-harvard-id="${id}"]`)!
+    vi.spyOn(node, 'getBoundingClientRect').mockReturnValue(
+      DOMRect.fromRect({ y: top, width: 400, height: 200 }),
     )
+  }
+}
+
+function scroll(target: EventTarget) {
+  act(() => {
+    target.dispatchEvent(new Event('scroll'))
+  })
+}
+
+function currentUnit() {
+  return document.querySelector('.harvard-outline__unit--current')?.getAttribute('data-harvard-id')
+}
+
+describe('HarvardOutlineViewer', () => {
+  beforeEach(() => {
+    // One frame per call, run at once, so a scroll's recomputation is observable.
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      callback(0)
+      return 1
+    })
+    vi.stubGlobal('cancelAnimationFrame', () => {})
     HTMLElement.prototype.scrollIntoView = vi.fn()
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
   })
 
   it('renders Harvard markers and highlights the first unit', () => {
@@ -167,54 +187,125 @@ describe('HarvardOutlineViewer', () => {
     )
   })
 
-  it('tracks the unit that scrolled into view', () => {
-    render(<HarvardOutlineViewer sections={SECTIONS} />)
-    const facts = document.querySelector('[data-harvard-id="facts"]')
-    expect(facts).not.toBeNull()
-    expect(ioCallback).toBeTypeOf('function')
-
-    act(() => {
-      ioCallback?.(
-        [
-          {
-            isIntersecting: true,
-            boundingClientRect: { top: 24 },
-            target: facts as Element,
-          } as unknown as IntersectionObserverEntry,
-        ],
-        {} as IntersectionObserver,
-      )
-    })
-
-    expect(document.querySelector('.harvard-outline__unit--current')).toHaveAttribute(
-      'data-harvard-id',
-      'facts',
+  it('highlights the last unit whose top has reached the viewport, not the first one visible', () => {
+    const onActiveIdChange = vi.fn()
+    render(
+      <HarvardOutlineViewer sections={SECTIONS} scrollMode="page" onActiveIdChange={onActiveIdChange} />,
     )
+    // After an instant jump to II.A: I and II are above the viewport, II.A
+    // rests at its 8px scroll margin, which counts as having reached the top.
+    document.querySelector<HTMLElement>('article[data-harvard-id="intro"]')!.style.scrollMarginTop = '8px'
+    layOut({ doc: -400, intro: -400, facts: -200, agreement: 8 })
+    scroll(window)
+    expect(currentUnit()).toBe('agreement')
+    expect(onActiveIdChange).toHaveBeenCalledTimes(1)
+
+    // A unit part-way down the viewport has not been reached yet.
+    layOut({ doc: -100, intro: -100, facts: 40, agreement: 400 })
+    scroll(window)
+    expect(currentUnit()).toBe('intro')
+
+    // Scrolling within the same unit reports nothing new.
+    scroll(window)
+    expect(onActiveIdChange).toHaveBeenCalledTimes(2)
   })
 
-  it('ignores intersection entries that are not a unit', () => {
+  it('keeps the first unit before the document reaches the top', () => {
+    render(<HarvardOutlineViewer sections={SECTIONS} scrollMode="page" />)
+    layOut({ doc: 300, intro: 300, facts: 500, agreement: 700 })
+    scroll(window)
+    expect(currentUnit()).toBe('intro')
+  })
+
+  it('measures a scrolling pane from the pane top', () => {
     render(<HarvardOutlineViewer sections={SECTIONS} />)
-    act(() => {
-      ioCallback?.(
-        [
-          {
-            isIntersecting: false,
-            boundingClientRect: { top: 0 },
-            target: document.createElement('div'),
-          } as unknown as IntersectionObserverEntry,
-          {
-            isIntersecting: true,
-            boundingClientRect: { top: 8 },
-            target: document.createElement('div'),
-          } as unknown as IntersectionObserverEntry,
-        ],
-        {} as IntersectionObserver,
-      )
-    })
-    expect(document.querySelector('.harvard-outline__unit--current')).toHaveAttribute(
-      'data-harvard-id',
-      'intro',
+    layOut({ doc: 200, intro: 0, facts: 203, agreement: 400 })
+    scroll(document.querySelector('.harvard-outline__doc')!)
+    expect(currentUnit()).toBe('facts')
+  })
+
+  it('does not track an outline that is not rendered', () => {
+    render(
+      <details>
+        <summary>Closed</summary>
+        <HarvardOutlineViewer sections={SECTIONS} scrollMode="page" />
+      </details>,
     )
+    // A closed <details> lays its content out with no box at all.
+    scroll(window)
+    expect(currentUnit()).toBe('intro')
+
+    layOut({ doc: -400, intro: -400, facts: 0, agreement: 300 })
+    act(() => {
+      document.querySelector('details')!.dispatchEvent(new Event('toggle'))
+    })
+    expect(currentUnit()).toBe('facts')
+  })
+
+  it('stops tracking when unmounted', () => {
+    const { unmount } = render(<HarvardOutlineViewer sections={SECTIONS} scrollMode="page" />)
+    unmount()
+    expect(() => scroll(window)).not.toThrow()
+  })
+
+  it('carries each unit depth and indents nested units in the document', () => {
+    render(<HarvardOutlineViewer sections={SECTIONS} />)
+    expect(document.querySelector('[data-harvard-id="intro"]')).toHaveAttribute('data-depth', '1')
+    expect(document.querySelector('article[data-harvard-id="agreement"]')).toHaveAttribute('data-depth', '2')
+  })
+
+  it('clamps unit depth the way the rail does', () => {
+    let deep: HarvardOutlineSection = { id: 'depth-8', marker: 'a', title: 'Deepest' }
+    for (let depth = 7; depth >= 1; depth -= 1) {
+      deep = { id: `depth-${depth}`, marker: String(depth), title: `Depth ${depth}`, sections: [deep] }
+    }
+    render(<HarvardOutlineViewer sections={[deep]} />)
+    expect(document.querySelector('article[data-harvard-id="depth-8"]')).toHaveAttribute('data-depth', '6')
+    expect(document.querySelector('[data-harvard-nav-id="depth-8"]')).toHaveAttribute('data-depth', '6')
+  })
+
+  it('opens an uncaptioned clause beside its marker and labels the rail with its words', () => {
+    const CLAUSE = 'The provider delivers the services described in the order form.'
+    const SUBCLAUSE = 'within ten business days of each request;'
+    render(
+      <HarvardOutlineViewer
+        sections={[
+          {
+            id: 'clause-3',
+            marker: '3',
+            children: <p>{CLAUSE}</p>,
+            sections: [
+              {
+                id: 'clause-3a',
+                marker: 'a',
+                blocks: [{ id: 'clause-3a-1', type: 'paragraph', text: SUBCLAUSE, runs: [{ id: 'r', type: 'text', text: SUBCLAUSE }] }],
+              },
+            ],
+          },
+          { id: 'clause-4', marker: '4', title: 'Term' },
+        ]}
+      />,
+    )
+
+    const clause = document.querySelector('article[data-harvard-id="clause-3"]')!
+    expect(clause.querySelector('.harvard-outline__heading')).toBeNull()
+    expect(clause.querySelector('.harvard-outline__clause > .harvard-outline__marker')).toHaveTextContent('3.')
+    expect(clause.querySelector('.harvard-outline__clause-body')).toHaveTextContent(CLAUSE)
+    // The words appear once in the document, not as a heading and again as the body.
+    expect(clause.textContent?.split(CLAUSE)).toHaveLength(2)
+
+    const rail = screen.getByRole('navigation')
+    expect(within(rail).getByRole('button', { name: /The provider delivers/ })).toBeInTheDocument()
+    expect(rail.querySelector('[data-harvard-nav-id="clause-3a"] .harvard-outline__label')).toHaveTextContent(SUBCLAUSE)
+    expect(rail.querySelector('[data-harvard-nav-id="clause-3"] .harvard-outline__label')?.textContent).toBe(CLAUSE)
+
+    // A captioned unit keeps its heading.
+    expect(document.querySelector('article[data-harvard-id="clause-4"] .harvard-outline__heading')).toHaveTextContent('4. Term')
+  })
+
+  it('labels an empty uncaptioned unit with nothing rather than inventing words', () => {
+    render(<HarvardOutlineViewer sections={[{ id: 'blank', marker: '1', children: [null, 'Reserved', 2] }]} />)
+    expect(document.querySelector('[data-harvard-nav-id="blank"] .harvard-outline__label')?.textContent).toBe('Reserved 2')
   })
 
   it('resets the highlight when the outline is replaced', () => {

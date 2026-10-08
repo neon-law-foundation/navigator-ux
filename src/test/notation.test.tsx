@@ -1,7 +1,7 @@
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
-import { fakeSentence, fakeTitle } from '../../fixtures/fake.mjs'
+import { fakeSentence, fakeTitle, fakeWords } from '../../fixtures/fake.mjs'
 import { HarvardOutlineViewer } from '../components/HarvardOutline'
 import { NotationViewer } from '../components/NotationViewer'
 import { deriveNotationChecklist, parseNotation, parseNotationDocument } from '../lib/notation'
@@ -119,6 +119,197 @@ describe('parseNotation', () => {
   })
 })
 
+const W = (key: string) => fakeWords(`notation/list/${key}`, 5)
+
+/** The list items of a one-section notation, as type, source number, and text. */
+function listItems(source: string) {
+  return (parseNotation(source)[0]?.blocks ?? []).map(({ type, number, text }) => ({ type, number, text }))
+}
+
+describe('parseNotation lists', () => {
+  it('joins an indented continuation to its ordered item, so the list stays one list', () => {
+    const source = [
+      `1. ${W('one')} and`,
+      `   ${W('one-wrap')};`,
+      `2. ${W('two')};`,
+      `3. ${W('three')}`,
+      `   ${W('three-wrap')};`,
+      `4. ${W('four')}.`,
+    ].join('\n')
+    expect(listItems(source)).toEqual([
+      { type: 'ordered-list-item', number: 1, text: `${W('one')} and ${W('one-wrap')};` },
+      { type: 'ordered-list-item', number: 2, text: `${W('two')};` },
+      { type: 'ordered-list-item', number: 3, text: `${W('three')} ${W('three-wrap')};` },
+      { type: 'ordered-list-item', number: 4, text: `${W('four')}.` },
+    ])
+
+    render(<HarvardOutlineViewer sections={parseNotation(source)} />)
+    const lists = document.querySelectorAll('ol.harvard-outline__list')
+    expect(lists).toHaveLength(1)
+    expect(lists[0]!.querySelectorAll('li')).toHaveLength(4)
+    expect(lists[0]).not.toHaveAttribute('start')
+  })
+
+  it('joins a lazy continuation line, the way CommonMark does', () => {
+    expect(listItems(`1. ${W('lazy')}\n${W('lazy-wrap')}\n2. ${W('after')}`)).toEqual([
+      { type: 'ordered-list-item', number: 1, text: `${W('lazy')} ${W('lazy-wrap')}` },
+      { type: 'ordered-list-item', number: 2, text: W('after') },
+    ])
+  })
+
+  it('joins wrapped lines of bulleted items, indented or lazy', () => {
+    expect(listItems(`- ${W('b-one')}\n  ${W('b-one-wrap')}\n* ${W('b-two')}\n${W('b-two-wrap')}`)).toEqual([
+      { type: 'list-item', number: undefined, text: `${W('b-one')} ${W('b-one-wrap')}` },
+      { type: 'list-item', number: undefined, text: `${W('b-two')} ${W('b-two-wrap')}` },
+    ])
+  })
+
+  it('keeps an indented paragraph after a blank line in its item, and ends the list at an unindented one', () => {
+    expect(listItems(`1. ${W('p-one')}\n\n   ${W('p-more')}\n2. ${W('p-two')}\n\n${W('p-after')}`)).toEqual([
+      { type: 'ordered-list-item', number: 1, text: `${W('p-one')} ${W('p-more')}` },
+      { type: 'ordered-list-item', number: 2, text: W('p-two') },
+      { type: 'paragraph', number: undefined, text: W('p-after') },
+    ])
+  })
+
+  it('does not swallow a hold or a quotation that follows an item', () => {
+    expect(listItems(`1. ${W('h-one')}\n[${W('h-hold')}]\n> ${W('h-quote')}`).map(({ type }) => type)).toEqual([
+      'ordered-list-item',
+      'hold',
+      'quotation',
+    ])
+  })
+
+  it('numbers a list that resumes after an interruption from its own first item', () => {
+    const source = `1. ${W('r-one')}\n2. ${W('r-two')}\n\n${W('r-between')}\n\n3. ${W('r-three')}\n4. ${W('r-four')}`
+    render(<HarvardOutlineViewer sections={parseNotation(source)} />)
+    const lists = document.querySelectorAll('ol.harvard-outline__list')
+    expect(lists).toHaveLength(2)
+    expect(lists[0]).not.toHaveAttribute('start')
+    expect(lists[1]).toHaveAttribute('start', '3')
+    expect(lists[1]!.querySelectorAll('li')).toHaveLength(2)
+  })
+
+  describe('the last item of a list', () => {
+    const LAST = W('last')
+    const lastOf = (blocks: { type: string; text: string }[] | undefined) => {
+      const items = (blocks ?? []).filter((block) => block.type === 'ordered-list-item')
+      return { count: items.length, last: items[items.length - 1]?.text }
+    }
+
+    it('is kept when the list ends the document, with or without a trailing newline', () => {
+      for (const end of ['', '\n', '\n\n']) {
+        const source = `I. ${SECTION_TITLE}\n\n1. ${W('first')}\n2. ${LAST}${end}`
+        expect(lastOf(parseNotation(source)[0]?.blocks)).toEqual({ count: 2, last: LAST })
+      }
+    })
+
+    it('is kept whole when it wraps', () => {
+      const source = `1. ${W('first')}\n2. ${LAST}\n   ${W('last-wrap')}`
+      expect(lastOf(parseNotation(source)[0]?.blocks)).toEqual({ count: 2, last: `${LAST} ${W('last-wrap')}` })
+    })
+
+    it('stays in its own section when the list ends the section', () => {
+      const sections = parseNotation(`I. ${SECTION_TITLE}\n\n1. ${W('first')}\n2. ${LAST}\n\nII. ${NESTED_TITLE}\n\n${BODY}`)
+      expect(lastOf(sections[0]?.blocks)).toEqual({ count: 2, last: LAST })
+      expect(sections[1]?.blocks?.map(({ type, text }) => ({ type, text }))).toEqual([{ type: 'paragraph', text: BODY }])
+    })
+
+    it('is flushed into its section when a heading follows it directly', () => {
+      for (const next of [`## II. ${NESTED_TITLE}`, `II. ${NESTED_TITLE}`]) {
+        const { sections } = parseNotationDocument(`## I. ${SECTION_TITLE}\n\n1. ${W('first')}\n2. ${LAST}\n   ${W('last-wrap')}\n${next}\n\n${BODY}`)
+        expect(lastOf(sections[0]?.blocks)).toEqual({ count: 2, last: `${LAST} ${W('last-wrap')}` })
+        expect(sections[1]).toMatchObject({ id: 'section-ii', title: NESTED_TITLE })
+        expect(sections[1]?.blocks?.[0]?.text).toBe(BODY)
+      }
+    })
+  })
+})
+
+/** Each unit as `path` → title (undefined when untitled), depth first. */
+function outlineOf(source: string) {
+  const walk = (sections: ReturnType<typeof parseNotation>, parent = ''): [string, string | undefined][] =>
+    sections.flatMap((section) => {
+      const path = parent ? `${parent}.${section.marker}` : section.marker
+      return [[path, section.title] as [string, string | undefined], ...walk(section.sections ?? [], path)]
+    })
+  return walk(parseNotationDocument(source).sections)
+}
+
+describe('marker-only headings', () => {
+  it('reads a bare marker the same with or without its period, for every marker type', () => {
+    for (const marker of ['I', 'IV', 'A', '1', '12', 'a']) {
+      const bare = parseNotationDocument(`## ${marker}\n\n${BODY}`).sections[0]
+      const dotted = parseNotationDocument(`## ${marker}.\n\n${BODY}`).sections[0]
+      expect(bare).toEqual(dotted)
+      expect(bare).toMatchObject({ marker, blocks: [{ text: BODY }] })
+      expect(bare?.title).toBeUndefined()
+    }
+  })
+
+  it('leaves an ordinary one-word heading alone', () => {
+    // An unmarked heading takes its depth from its `#` level, as it always has.
+    expect(outlineOf(`## I. ${SECTION_TITLE}\n\n${BODY}\n\n## Signatures\n\n${BODY}\n\n## Notes`)).toEqual([
+      ['I', SECTION_TITLE],
+      ['I.•', 'Signatures'],
+      ['I.•', 'Notes'],
+    ])
+  })
+
+  it('nests a Roman-numbered reply as I → I.A, IV', () => {
+    const source = ['## I', BODY, '### A', BODY, '### B', BODY, '## II', BODY, '## IV. Governing Law', BODY].join('\n\n')
+    expect(outlineOf(source)).toEqual([
+      ['I', undefined],
+      ['I.A', undefined],
+      ['I.B', undefined],
+      ['II', undefined],
+      ['IV', 'Governing Law'],
+    ])
+    expect(parseNotationDocument(source).sections.map((section) => section.id)).toEqual([
+      'section-i',
+      'section-ii',
+      'section-iv',
+    ])
+  })
+
+  it('reads a Roman-looking capital as a subsection when it follows the letter before it', () => {
+    const source = ['## III', '### A', '### B', '### C', '### D', '## IV. Governing Law'].join('\n\n')
+    expect(outlineOf(source)).toEqual([
+      ['III', undefined],
+      ['III.A', undefined],
+      ['III.B', undefined],
+      ['III.C', undefined],
+      ['III.D', undefined],
+      ['IV', 'Governing Law'],
+    ])
+  })
+
+  it('runs subsections A through M without breaking at a Roman letter', () => {
+    const letters = 'ABCDEFGHIJKLM'.split('')
+    const source = ['## I', ...letters.map((letter) => `### ${letter}`)].join('\n\n')
+    expect(outlineOf(source)).toEqual([['I', undefined], ...letters.map((letter) => [`I.${letter}`, undefined])])
+  })
+
+  it('keeps a Roman numeral at the top level when no letter precedes it', () => {
+    expect(outlineOf(['## I', '## II', '## V', '## X'].join('\n\n')).map(([path]) => path)).toEqual([
+      'I',
+      'II',
+      'V',
+      'X',
+    ])
+    // V after a section's subsections A–D is still the next Roman section.
+    const after = ['## IV', '### A', '### B', '### C', '### D', '## V'].join('\n\n')
+    expect(outlineOf(after).map(([path]) => path)).toEqual(['IV', 'IV.A', 'IV.B', 'IV.C', 'IV.D', 'V'])
+  })
+
+  it('reads I after H as a capital, with or without a period', () => {
+    for (const end of ['', '.']) {
+      const source = ['## I', '### G', '### H', `### I${end}`, '## II'].join('\n\n')
+      expect(outlineOf(source).map(([path]) => path)).toEqual(['I', 'I.G', 'I.H', 'I.I', 'II'])
+    }
+  })
+})
+
 describe('NotationViewer', () => {
   it('renders an empty outline when the source has no title, terms, or sections', () => {
     render(<NotationViewer source="" hrefForId={(id) => `#${id}`} />)
@@ -189,20 +380,12 @@ describe('deriveNotationChecklist', () => {
 })
 
 describe('HarvardOutlineViewer with parsed notation', () => {
-  it('uses page observation, jumps in the page, and scrolls the current rail item locally', async () => {
-    let observerOptions: IntersectionObserverInit | undefined
-    let observerCallback: IntersectionObserverCallback | undefined
-    vi.stubGlobal(
-      'IntersectionObserver',
-      class {
-        observe = vi.fn()
-        disconnect = vi.fn()
-        constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
-          observerCallback = callback
-          observerOptions = options
-        }
-      },
-    )
+  it('tracks the page, jumps in the page, and scrolls the current rail item locally', async () => {
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      callback(0)
+      return 1
+    })
+    vi.stubGlobal('cancelAnimationFrame', () => {})
     const scrollIntoView = vi.fn()
     HTMLElement.prototype.scrollIntoView = scrollIntoView
     const user = userEvent.setup()
@@ -213,8 +396,6 @@ describe('HarvardOutlineViewer with parsed notation', () => {
     const nextButton = screen.getByRole('button', { name: new RegExp(NESTED_TITLE) })
     const nextItem = document.querySelector(`[data-harvard-id="${sectionSlug(NESTED_TITLE)}"]`)
     expect(viewer).toHaveClass('harvard-outline--page-scroll')
-    expect(observerOptions?.root).toBeNull()
-    expect(observerCallback).toBeTypeOf('function')
 
     vi.spyOn(nav, 'getBoundingClientRect').mockReturnValue({
       top: 0,
@@ -245,36 +426,21 @@ describe('HarvardOutlineViewer with parsed notation', () => {
     expect(nextItem).toBeInTheDocument()
     expect(scrollIntoView.mock.contexts[0]).toBe(nextItem)
 
+    // The page scrolls back: the first unit's top has reached the viewport's,
+    // the nested one is still below it.
+    const firstItem = document.querySelector(`[data-harvard-id="${sectionSlug(SECTION_TITLE)}"]`)!
+    const doc = document.querySelector('.harvard-outline__doc')!
+    vi.spyOn(doc, 'getBoundingClientRect').mockReturnValue(DOMRect.fromRect({ y: -20, width: 100, height: 800 }))
+    vi.spyOn(firstItem, 'getBoundingClientRect').mockReturnValue(DOMRect.fromRect({ y: -20, width: 100, height: 300 }))
+    vi.spyOn(nextItem!, 'getBoundingClientRect').mockReturnValue(DOMRect.fromRect({ y: 280, width: 100, height: 300 }))
     act(() => {
-      observerCallback?.(
-        [{
-          isIntersecting: true,
-          boundingClientRect: { top: 20 },
-          target: nextItem as Element,
-        } as unknown as IntersectionObserverEntry,
-        {
-          isIntersecting: true,
-          boundingClientRect: { top: 40 },
-          target: document.querySelector(`[data-harvard-id="${sectionSlug(SECTION_TITLE)}"]`) as Element,
-        } as unknown as IntersectionObserverEntry],
-        {} as IntersectionObserver,
-      )
+      window.dispatchEvent(new Event('scroll'))
     })
-    expect(document.querySelector('.harvard-outline__unit--current')).toBe(nextItem)
+    expect(document.querySelector('.harvard-outline__unit--current')).toBe(firstItem)
+    vi.unstubAllGlobals()
   })
 
-  it('keeps the viewport observer when a controlled active id changes', () => {
-    let observerCount = 0
-    vi.stubGlobal(
-      'IntersectionObserver',
-      class {
-        observe = vi.fn()
-        disconnect = vi.fn()
-        constructor() {
-          observerCount += 1
-        }
-      },
-    )
+  it('leaves a controlled active id to its owner across a rerender', () => {
     const sections = parseNotation(notation())
     const firstId = sections[0]!.id
     const nextId = sections[0]!.sections![0]!.id
@@ -297,6 +463,7 @@ describe('HarvardOutlineViewer with parsed notation', () => {
       />,
     )
 
-    expect(observerCount).toBe(1)
+    expect(document.querySelector('.harvard-outline__unit--current')).toHaveAttribute('data-harvard-id', nextId)
+    expect(onActiveIdChange).not.toHaveBeenCalled()
   })
 })

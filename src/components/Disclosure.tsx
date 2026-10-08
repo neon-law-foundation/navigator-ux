@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode, type RefObject } from 'react'
 
 /*
  * Accordion and Collapsible — shadcn's disclosure pair, on `<details>`.
@@ -44,9 +44,35 @@ export interface AccordionProps {
   name?: string
 }
 
+/**
+ * Open the item a link points into. When the address's fragment names an item,
+ * or anything inside one, every `<details>` around the target is opened and the
+ * target scrolled into view — on load and on each hash change. Browsers differ
+ * on whether fragment navigation opens a closed `<details>`, so this does not
+ * leave it to them.
+ */
+function useOpenOnFragment(root: RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const open = () => {
+      const id = decodeURIComponent(window.location.hash.slice(1))
+      const target = id ? document.getElementById(id) : null
+      if (!target || !root.current?.contains(target)) return
+      for (let node = target.closest('details'); node; node = node.parentElement?.closest('details') ?? null) {
+        node.open = true
+      }
+      target.scrollIntoView?.({ block: 'start' })
+    }
+    open()
+    window.addEventListener('hashchange', open)
+    return () => window.removeEventListener('hashchange', open)
+  }, [root])
+}
+
 export function Accordion({ items, exclusive, name = 'nav-accordion' }: AccordionProps) {
+  const ref = useRef<HTMLDivElement>(null)
+  useOpenOnFragment(ref)
   return (
-    <div className="nav-accordion">
+    <div className="nav-accordion" ref={ref}>
       {items.map((item) => (
         <details
           key={item.id}

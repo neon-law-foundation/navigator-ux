@@ -1,4 +1,6 @@
 import {
+  Children,
+  isValidElement,
   useCallback,
   useEffect,
   useId,
@@ -9,12 +11,19 @@ import {
   type ReactNode,
 } from 'react'
 
+import { readerPlace } from '../lib/reader-place'
+
 export interface HarvardOutlineSection {
   /** Stable id used as the document fragment and the nav target. */
   id: string
   /** Displayed marker: "I", "A", "1", "a". */
   marker: string
-  title: string
+  /**
+   * The unit's caption. Leave it out for an uncaptioned clause: the body then
+   * opens beside its marker, and the rail labels the unit with the body's
+   * opening words.
+   */
+  title?: string
   /** Body of this unit. Nested sections render after it. */
   children?: ReactNode
   /** Parsed notation blocks rendered when `children` is not supplied. */
@@ -27,6 +36,11 @@ export interface HarvardOutlineBlock {
   type: 'paragraph' | 'list-item' | 'ordered-list-item' | 'hold' | 'quotation'
   text: string
   runs: HarvardOutlineRun[]
+  /**
+   * The number the source gave an ordered-list item. A list that resumes after
+   * an interruption starts from it rather than restarting at 1.
+   */
+  number?: number
 }
 
 export interface HarvardOutlineRun {
@@ -56,7 +70,9 @@ export interface HarvardOutlineViewerProps {
 interface FlatUnit {
   id: string
   marker: string
-  title: string
+  title?: string
+  /** The rail's label: the title, or the body's text when there is none. */
+  label: string
   path: string
   depth: number
   children?: ReactNode
@@ -75,6 +91,9 @@ function flatten(
         id: section.id,
         marker: section.marker,
         title: section.title,
+        label:
+          section.title ??
+          (section.blocks?.map((block) => block.text).join(' ') || textOf(section.children)),
         path,
         depth,
         children: section.children,
@@ -83,6 +102,16 @@ function flatten(
       ...flatten(section.sections ?? [], depth + 1, path),
     ]
   })
+}
+
+/** The plain text of a React tree, for a rail label taken from a unit's body. */
+function textOf(node: ReactNode): string {
+  if (typeof node === 'string' || typeof node === 'number') return String(node)
+  if (Array.isArray(node)) return node.map(textOf).filter(Boolean).join(' ')
+  if (isValidElement<{ children?: ReactNode }>(node)) {
+    return Children.toArray(node.props.children).map(textOf).filter(Boolean).join(' ')
+  }
+  return ''
 }
 
 function BlockList({ blocks }: { blocks: HarvardOutlineBlock[] }) {
@@ -102,8 +131,9 @@ function BlockList({ blocks }: { blocks: HarvardOutlineBlock[] }) {
       const items: HarvardOutlineBlock[] = []
       while (blocks[index]?.type === type) items.push(blocks[index++]!)
       const List = type === 'ordered-list-item' ? 'ol' : 'ul'
+      const start = List === 'ol' && block.number !== undefined && block.number !== 1 ? block.number : undefined
       rendered.push(
-        <List className="harvard-outline__list" key={block.id}>
+        <List className="harvard-outline__list" key={block.id} start={start}>
           {items.map((item) => (
             <li id={item.id} data-notation-type={item.type} key={item.id}>{renderRuns(item)}</li>
           ))}
@@ -140,7 +170,8 @@ function BlockList({ blocks }: { blocks: HarvardOutlineBlock[] }) {
  * The rail is the outline a lawyer already knows — Roman, then letter, then
  * Arabic — and it tracks the unit currently in view as the reader moves down
  * the document. Clicking a marker jumps there; j/k and the arrow keys step
- * when the navigator has focus. The document is handed in; this component
+ * when the navigator has focus. Each unit carries its depth, so a subsection
+ * steps in one indent from its parent in the document as it does in the rail. The document is handed in; this component
  * holds none of its own.
  */
 export function HarvardOutlineViewer({
@@ -178,28 +209,41 @@ export function HarvardOutlineViewer({
     setInternalId(units[0]?.id ?? '')
   }, [activeId, internalId, units])
 
+  // The highlight follows the reader's place (see lib/reader-place.ts), from
+  // every unit once a frame while the document scrolls. An observer reporting
+  // only the units whose visibility changed settles a unit behind after an
+  // instant jump.
   useEffect(() => {
-    if (units.length === 0 || typeof IntersectionObserver === 'undefined') return undefined
-    const root = scrollMode === 'page' ? null : paneRef.current
-    const documentRoot = scrollMode === 'page' ? document.getElementById(navId) : root
-    if (!documentRoot) return undefined
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
-        const next = visible[0]?.target.getAttribute('data-harvard-id')
-        if (next) setCurrentRef.current(next)
-      },
-      { root, rootMargin: '0px 0px -55% 0px', threshold: 0 },
-    )
-
-    for (const node of documentRoot.querySelectorAll('[data-harvard-id]')) {
-      observer.observe(node)
+    const pane = paneRef.current
+    if (!pane || units.length === 0) return undefined
+    const scroller: Window | HTMLElement = scrollMode === 'page' ? window : pane
+    const disclosure = pane.closest('details')
+    let frame = 0
+    let tracked = ''
+    const track = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        const box = pane.getBoundingClientRect()
+        // No box means not rendered, as inside a closed <details>.
+        if (box.width === 0 && box.height === 0) return
+        const { units: nodes, current } = readerPlace(pane, scrollMode === 'page' ? 0 : box.top)
+        const id = nodes[Math.max(current, 0)]?.getAttribute('data-harvard-id')
+        if (!id || id === tracked) return
+        tracked = id
+        setCurrentRef.current(id)
+      })
     }
-    return () => observer.disconnect()
-  }, [navId, scrollMode, units])
+    track()
+    scroller.addEventListener('scroll', track, { passive: true })
+    window.addEventListener('resize', track)
+    disclosure?.addEventListener('toggle', track)
+    return () => {
+      cancelAnimationFrame(frame)
+      scroller.removeEventListener('scroll', track)
+      window.removeEventListener('resize', track)
+      disclosure?.removeEventListener('toggle', track)
+    }
+  }, [scrollMode, units])
 
   useEffect(() => {
     const nav = navRef.current
@@ -286,7 +330,7 @@ export function HarvardOutlineViewer({
               href={hrefForId(unit.id)}
             >
               <span className="harvard-outline__marker">{unit.marker}.</span>
-              <span className="harvard-outline__label">{unit.title}</span>
+              <span className="harvard-outline__label">{unit.label}</span>
               <span className="harvard-outline__path">{unit.path}</span>
             </a>
           ) : (
@@ -304,7 +348,7 @@ export function HarvardOutlineViewer({
               onClick={() => jumpTo(unit.id)}
             >
               <span className="harvard-outline__marker">{unit.marker}.</span>
-              <span className="harvard-outline__label">{unit.title}</span>
+              <span className="harvard-outline__label">{unit.label}</span>
               <span className="harvard-outline__path">{unit.path}</span>
             </button>
           )
@@ -322,6 +366,7 @@ export function HarvardOutlineViewer({
         ) : null}
         {units.map((unit) => {
           const current = unit.id === currentId
+          const body = unit.children ?? (unit.blocks ? <BlockList blocks={unit.blocks} /> : null)
           return (
             <article
               key={unit.id}
@@ -330,15 +375,25 @@ export function HarvardOutlineViewer({
                   ? 'harvard-outline__unit harvard-outline__unit--current'
                   : 'harvard-outline__unit'
               }
+              data-depth={Math.min(unit.depth, 6)}
               data-harvard-id={unit.id}
               data-harvard-path={unit.path}
               aria-current={current ? 'location' : undefined}
               id={unit.id}
             >
-              <h3 className="harvard-outline__heading">
-                <span className="harvard-outline__marker">{unit.marker}.</span> {unit.title}
-              </h3>
-              {unit.children ?? (unit.blocks ? <BlockList blocks={unit.blocks} /> : null)}
+              {unit.title === undefined ? (
+                <div className="harvard-outline__clause">
+                  <span className="harvard-outline__marker">{unit.marker}.</span>
+                  <div className="harvard-outline__clause-body">{body}</div>
+                </div>
+              ) : (
+                <>
+                  <h3 className="harvard-outline__heading">
+                    <span className="harvard-outline__marker">{unit.marker}.</span> {unit.title}
+                  </h3>
+                  {body}
+                </>
+              )}
             </article>
           )
         })}

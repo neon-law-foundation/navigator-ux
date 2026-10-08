@@ -7,7 +7,11 @@ export interface NotationViewerProps {
   hrefForId: (id: string) => string
 }
 
-/** Share parsing and Contents behavior across portals that render Markdown notation. */
+/**
+ * A notation as the page itself: its title as the page's `<h1>`, its open
+ * terms listed, then the outline. `Notation` renders the same source as one
+ * collapsible document under a heading the page already has.
+ */
 export function NotationViewer({ source, hrefForId }: NotationViewerProps) {
   const document = parseNotationDocument(source)
 

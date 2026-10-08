@@ -53,15 +53,18 @@ export function useShortcutRegistry(): ShortcutRegistry {
  *
  * The handler may close over fresh state on every render: registration is keyed
  * on the key, description, scope and editable-field policy, and the latest `run`
- * is read at press time, so a changing closure never re-registers (and never
+ * and `when` are read at press time, so a changing closure never re-registers (and never
  * reorders the overlay).
  */
 export function useShortcut(shortcut: Shortcut | null): void {
   const registry = useShortcutRegistry()
   const run = useRef<Shortcut['run']>(() => {})
+  const when = useRef<Shortcut['when']>(undefined)
   const latest = shortcut?.run
+  const latestWhen = shortcut?.when
   useEffect(() => {
     if (latest) run.current = latest
+    when.current = latestWhen
   })
 
   const key = shortcut?.key
@@ -77,6 +80,7 @@ export function useShortcut(shortcut: Shortcut | null): void {
       scope,
       allowInEditable,
       run: (event) => run.current(event),
+      when: (event) => when.current?.(event) ?? true,
     })
   }, [registry, key, description, scope, allowInEditable])
 }

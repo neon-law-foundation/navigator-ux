@@ -31,7 +31,6 @@ const COMPOSED: Record<string, string> = {
   Field: 'DatePicker',
   Runs: 'Prose',
   ShortcutHelp: 'ShortcutHost',
-  ShortcutHost: 'NavigatorShell',
   ShortcutList: 'ShortcutHelp',
   TestimonialGrid: 'TestimonialSection',
 }

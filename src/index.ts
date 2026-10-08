@@ -397,6 +397,12 @@ export {
 } from './components/HarvardOutline'
 export { NotationViewer, type NotationViewerProps } from './components/NotationViewer'
 export {
+  Notation,
+  type NotationProps,
+  type NotationSectionsProps,
+  type NotationSourceProps,
+} from './components/Notation'
+export {
   deriveNotationChecklist,
   parseNotation,
   parseNotationDocument,

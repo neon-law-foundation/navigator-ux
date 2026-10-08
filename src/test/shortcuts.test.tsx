@@ -166,6 +166,43 @@ describe('createShortcutRegistry', () => {
     expect(run).not.toHaveBeenCalled()
   })
 
+  it('leaves a key it does not claim to the browser, and to an older registration', () => {
+    const registry = createShortcutRegistry()
+    const older = vi.fn()
+    const newer = vi.fn()
+    let claim = false
+    registry.register({ key: 'ArrowDown', description: 'Older', scope: 'page', run: older })
+    registry.register({ key: 'ArrowDown', description: 'Newer', scope: 'page', run: newer, when: () => claim })
+
+    const passed = new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true })
+    expect(registry.handle(passed)).toBe(true)
+    expect(older).toHaveBeenCalledOnce()
+    expect(newer).not.toHaveBeenCalled()
+
+    claim = true
+    registry.handle(new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true }))
+    expect(newer).toHaveBeenCalledOnce()
+
+    const alone = createShortcutRegistry()
+    alone.register({ key: 'ArrowDown', description: 'Never', scope: 'page', run: newer, when: () => false })
+    const declined = new KeyboardEvent('keydown', { key: 'ArrowDown', cancelable: true })
+    expect(alone.handle(declined)).toBe(false)
+    expect(declined.defaultPrevented).toBe(false)
+  })
+
+  it('lists a key registered more than once with one description only once', () => {
+    const registry = createShortcutRegistry()
+    registry.register({ key: 'ArrowDown', description: 'Next', scope: 'page', run: vi.fn() })
+    const second = registry.register({ key: 'ArrowDown', description: 'Next', scope: 'page', run: vi.fn() })
+    registry.register({ key: 'ArrowDown', description: 'Next', scope: 'global', run: vi.fn() })
+    expect(registry.list()).toEqual([
+      { key: 'ArrowDown', description: 'Next', scope: 'global' },
+      { key: 'ArrowDown', description: 'Next', scope: 'page' },
+    ])
+    second()
+    expect(registry.list()).toHaveLength(2)
+  })
+
   it('rejects a registration whose key cannot be parsed', () => {
     expect(() =>
       createShortcutRegistry().register({ key: 'Hyper+x', description: 'x', scope: 'page', run: vi.fn() }),
@@ -348,6 +385,28 @@ describe('useShortcut', () => {
     expect(first).not.toHaveBeenCalled()
     expect(second).toHaveBeenCalledOnce()
     expect(register).toHaveBeenCalledOnce()
+  })
+
+  it('reads the latest when at press time', () => {
+    const registry = createShortcutRegistry()
+    const run = vi.fn()
+    function Gated({ open }: { open: boolean }) {
+      useShortcut({ key: 'n', description: 'Gated', scope: 'page', run, when: () => open })
+      return null
+    }
+    const { rerender } = render(
+      <ShortcutProvider registry={registry}>
+        <Gated open={false} />
+      </ShortcutProvider>,
+    )
+    expect(registry.handle(new KeyboardEvent('keydown', { key: 'n' }))).toBe(false)
+    rerender(
+      <ShortcutProvider registry={registry}>
+        <Gated open />
+      </ShortcutProvider>,
+    )
+    expect(registry.handle(new KeyboardEvent('keydown', { key: 'n' }))).toBe(true)
+    expect(run).toHaveBeenCalledOnce()
   })
 
   it('registers nothing for null', () => {

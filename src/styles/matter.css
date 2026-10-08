@@ -293,8 +293,13 @@ section[id] {
 
 /* -------------------------------------------------------------- panel -- */
 
+/* `clip` rather than `hidden`: it trims children to the rounded corners
+   without making the panel a scroll container, which would stop a sticky
+   descendant (a page-scrolled outline rail) from sticking. `hidden` first is
+   the fallback for a browser without `clip`. */
 .panel {
   overflow: hidden;
+  overflow: clip;
   border: 1px solid var(--nav-color-border);
   border-radius: var(--nav-radius);
   background: var(--nav-color-surface);
@@ -1192,6 +1197,21 @@ section[id] {
   cursor: pointer;
 }
 
+.harvard-outline__item {
+  /* Table-like rows: every marker sits left in a column of one width, so the
+     labels of a depth start on one line whatever the numeral. */
+  grid-template-columns: calc(var(--nav-space-8) + var(--nav-space-2)) minmax(0, 1fr) auto;
+  align-items: baseline;
+}
+
+.harvard-outline__item .harvard-outline__label {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
 .harvard-outline__item:is(a) {
   color: inherit;
   text-decoration: none;
@@ -1276,9 +1296,43 @@ section[id] {
   scroll-margin-top: 8px;
 }
 
+/* Each depth steps in one indent from its parent. A margin rather than padding,
+   so the current unit's border moves in with it. */
+.harvard-outline__unit[data-depth='2'] {
+  margin-inline-start: var(--nav-space-6);
+}
+
+.harvard-outline__unit[data-depth='3'] {
+  margin-inline-start: calc(2 * var(--nav-space-6));
+}
+
+.harvard-outline__unit[data-depth='4'] {
+  margin-inline-start: calc(3 * var(--nav-space-6));
+}
+
+.harvard-outline__unit[data-depth='5'] {
+  margin-inline-start: calc(4 * var(--nav-space-6));
+}
+
+.harvard-outline__unit[data-depth='6'] {
+  margin-inline-start: calc(5 * var(--nav-space-6));
+}
+
 .harvard-outline__unit--current {
   border-left-color: var(--nav-color-primary);
   background: var(--nav-color-surface-subtle);
+}
+
+/* An uncaptioned clause: its marker hangs in a column of its own and the
+   body's wrapped lines align to the copy, not under the marker. */
+.harvard-outline__clause {
+  display: grid;
+  grid-template-columns: calc(var(--nav-space-8) + var(--nav-space-2)) minmax(0, 1fr);
+  align-items: baseline;
+}
+
+.harvard-outline__clause-body > :last-child {
+  margin-bottom: 0;
 }
 
 .harvard-outline__heading {

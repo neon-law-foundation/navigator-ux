@@ -152,7 +152,8 @@ to round; and a surface deliberately filling the viewport, which is what `.autho
 resets to under the mobile breakpoint.
 
 A container whose children run edge to edge gets `overflow: hidden` alongside its radius rather than
-matching radii on each child, which is what `.nav-card` already did and what the rest now copy.
+matching radii on each child, which is what `.nav-card` already did and what the rest now copy. Where
+a sticky descendant must still stick, it is `overflow: clip` instead (`.panel`, `.nav-accordion__item`).
 Rounding the parent and leaving the child square is the failure mode — it does not error, it just
 puts a square band's corner outside a rounded border, and you only see it on the specimen page.
 `.nav-sheet` is the one asymmetric case: it rounds the edge facing the page and stays square against
