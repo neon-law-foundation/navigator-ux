@@ -47,5 +47,7 @@
     --nav-color-text: #fffbd1;
     --nav-color-text-muted: #e5dc8a;
     --nav-color-border: #8f842d;
+    /* The library grid is teal, and 1.02:1 on the olive pad. This is 1.18:1. */
+    --nav-chart-grid: #403900;
   }
 }

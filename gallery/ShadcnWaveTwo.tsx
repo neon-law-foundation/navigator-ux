@@ -141,6 +141,7 @@ export function ShadcnWaveTwo({ Section }: { Section: ComponentType<SectionProps
               ]}
               label="Open matters by posture"
               format={(value) => `${value}%`}
+              innerRadius={0.6}
             />
           </div>
         </div>
@@ -362,9 +363,9 @@ export function ShadcnWaveTwo({ Section }: { Section: ComponentType<SectionProps
 
       <Section title="Containers and states">
         <ButtonGroup label="Document actions">
-          <NavButton variant="secondary">Copy</NavButton>
-          <NavButton variant="secondary">Download</NavButton>
-          <NavButton variant="secondary">Share</NavButton>
+          <NavButton variant="outline">Copy</NavButton>
+          <NavButton variant="outline">Download</NavButton>
+          <NavButton variant="outline">Share</NavButton>
         </ButtonGroup>
 
         <Carousel label="Exhibits">

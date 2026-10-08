@@ -70,6 +70,28 @@ function summarize(data: ChartPoint[], label: string, format: (value: number) =>
   return `${label}. ${data.length} points from ${first.label} to ${last.label}, ranging ${format(lowest)} to ${format(highest)}. Ends at ${format(last.value)}.`
 }
 
+/** Corner radius of a bar's top, in viewBox units. */
+const BAR_RADIUS = 4
+
+/**
+ * A bar as a path: square at the baseline, rounded at the top. An `rx` would
+ * round all four corners and lift the bar off the axis it stands on. The
+ * radius shrinks for a bar too thin or too short to carry it.
+ */
+function barPath(x: number, y: number, width: number, height: number, radius = BAR_RADIUS): string {
+  const r = Math.max(0, Math.min(radius, width / 2, height))
+  const bottom = y + height
+  return [
+    `M${x},${bottom}`,
+    `V${y + r}`,
+    `Q${x},${y} ${x + r},${y}`,
+    `H${x + width - r}`,
+    `Q${x + width},${y} ${x + width},${y + r}`,
+    `V${bottom}`,
+    'Z',
+  ].join('')
+}
+
 function Gridlines({ ticks, scale, inner }: { ticks: number[]; scale: (v: number) => number; inner: number }) {
   return (
     <g aria-hidden="true">
@@ -145,13 +167,15 @@ export function BarChart({
           <Gridlines ticks={ticks} scale={y} inner={inner} />
           <ValueAxis ticks={ticks} scale={y} format={format} />
           {data.map((point) => (
-            <rect
+            <path
               key={point.label}
               className="nav-chart__bar"
-              x={x(point.label)}
-              y={y(point.value)}
-              width={x.bandwidth()}
-              height={Math.max(0, innerHeight - y(point.value))}
+              d={barPath(
+                x(point.label) ?? 0,
+                y(point.value),
+                x.bandwidth(),
+                Math.max(0, innerHeight - y(point.value)),
+              )}
               fill={seriesColor(series)}
             />
           ))}
@@ -217,7 +241,6 @@ function Trend({
   }, [data, inner, innerHeight])
 
   const gradientId = useId()
-  const last = data[data.length - 1]
 
   return (
     <figure className="nav-chart">
@@ -226,8 +249,8 @@ function Trend({
         {filled ? (
           <defs>
             <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor={seriesColor(series)} stopOpacity="0.28" />
-              <stop offset="100%" stopColor={seriesColor(series)} stopOpacity="0.02" />
+              <stop offset="0%" stopColor={seriesColor(series)} stopOpacity="0.8" />
+              <stop offset="100%" stopColor={seriesColor(series)} stopOpacity="0.1" />
             </linearGradient>
           </defs>
         ) : null}
@@ -235,18 +258,10 @@ function Trend({
           <Gridlines ticks={ticks} scale={y} inner={inner} />
           <ValueAxis ticks={ticks} scale={y} format={format} />
           {filled ? <path className="nav-chart__area" d={areaPath} fill={`url(#${gradientId})`} /> : null}
+          {/* Drawn after the fill so the stroke sits on top of it. No point
+              markers: on a monotone curve a dot per point is noise, and the
+              summary in the title already states where the series ends. */}
           <path className="nav-chart__line" d={linePath} stroke={seriesColor(series)} fill="none" />
-          {/* The endpoint is emphasized because it is the value a reader
-              actually wants from a trend: where it is now. */}
-          {last ? (
-            <circle
-              className="nav-chart__endpoint"
-              cx={x(data.length - 1)}
-              cy={y(last.value)}
-              r={4}
-              fill={seriesColor(series)}
-            />
-          ) : null}
           {data.map((point, index) => (
             <text
               key={point.label}
@@ -314,6 +329,10 @@ export interface PieChartProps {
   innerRadius?: number
 }
 
+/** Radians between donut slices, and the rounding at each slice's corners. */
+const DONUT_PAD_ANGLE = 0.02
+const DONUT_CORNER_RADIUS = 4
+
 function summarizePie(data: ChartPoint[], label: string, format: (value: number) => string): string {
   const slices = data.filter((point) => point.value > 0)
   if (slices.length === 0) return `${label}: no data`
@@ -344,12 +363,17 @@ export function PieChart({
 
   const slices = useMemo(() => {
     const values = data.filter((point) => point.value > 0)
+    // A donut separates its slices with a gap and rounds their ends; a solid
+    // pie keeps the surface-colored seam, because a gap there converges to a
+    // point at the center and a rounded corner has nowhere to go.
     const pie = d3Pie<ChartPoint>()
       .value((point) => point.value)
       .sort(null)
+      .padAngle(hole > 0 ? DONUT_PAD_ANGLE : 0)
     const arc = d3Arc<PieArcDatum<ChartPoint>>()
       .innerRadius(hole)
       .outerRadius(radius)
+      .cornerRadius(hole > 0 ? DONUT_CORNER_RADIUS : 0)
     return pie(values).map((datum, index) => ({
       datum,
       path: arc(datum) ?? '',

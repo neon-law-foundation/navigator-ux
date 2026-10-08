@@ -248,7 +248,7 @@ describe('RowActions', () => {
         ]}
       />,
     )
-    expect(screen.getByRole('button', { name: /Approve/ })).toHaveClass('nav-btn--secondary')
+    expect(screen.getByRole('button', { name: /Approve/ })).toHaveClass('nav-btn--outline')
     expect(screen.getByRole('link', { name: /View/ })).toBeInTheDocument()
   })
 })

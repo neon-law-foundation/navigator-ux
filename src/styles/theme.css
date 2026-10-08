@@ -108,6 +108,11 @@ textarea {
 
 .nav-theme a.nav-btn--secondary,
 .nav-theme a.nav-btn--secondary:hover {
+  color: var(--nav-color-on-secondary);
+}
+
+.nav-theme a.nav-btn--outline,
+.nav-theme a.nav-btn--outline:hover {
   color: var(--nav-color-text);
 }
 
@@ -269,7 +274,7 @@ textarea {
   overflow: hidden;
   border: 1px solid var(--nav-color-border);
   border-radius: var(--nav-radius);
-  box-shadow: var(--nav-shadow);
+  box-shadow: var(--nav-shadow-sm);
 }
 
 .navigator-chrome-showcase .navigator-shell {
@@ -309,30 +314,40 @@ textarea {
   }
 }
 
-/* Card — the design system's shared surface. */
+/* Card — the design system's shared surface. Header, body, and footer share
+   one inset and are separated by space alone: no tinted band, no rule. Each
+   section pads its own sides and the body pads both ends, so whichever
+   sections are present, the gap between them is the same. */
 .nav-card {
   background: var(--nav-color-surface);
   border: 1px solid var(--nav-color-border);
-  border-radius: var(--nav-radius);
-  box-shadow: var(--nav-shadow);
+  border-radius: var(--nav-radius-xl);
+  box-shadow: var(--nav-shadow-sm);
   overflow: hidden;
 }
 
 .nav-card__header {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--nav-color-border);
-  background: var(--nav-color-surface-raised);
+  padding: var(--nav-space-6) var(--nav-space-6) 0;
   font-weight: 700;
+  line-height: 1.25;
+}
+
+.nav-card__description {
+  margin: var(--nav-space-1) 0 0;
+  color: var(--nav-color-text-muted);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 .nav-card__icon {
-  padding: var(--nav-space-4) var(--nav-space-4) 0;
+  padding: var(--nav-space-6) var(--nav-space-6) 0;
   color: var(--nav-color-primary);
   font-size: 1.5rem;
 }
 
 .nav-card__body {
-  padding: 1rem;
+  padding: var(--nav-space-6);
 }
 
 .nav-card__body--center {
@@ -340,22 +355,28 @@ textarea {
 }
 
 .nav-card__footer {
-  padding: 0.75rem 1rem;
-  border-top: 1px solid var(--nav-color-border);
-  background: var(--nav-color-surface-raised);
+  display: flex;
+  align-items: center;
+  gap: var(--nav-space-2);
+  padding: 0 var(--nav-space-6) var(--nav-space-6);
 }
 
-/* The brand anchor treatment — a "this one" card. The header band, when
-   present, is painted with the brand color over `--nav-color-on-primary`,
-   the ink the token layer inverts with the scheme so the pairing clears AA
-   in both (5.79:1 light, 7.69:1 dark). */
+/* The brand anchor treatment — a "this one" card, and the one card that keeps
+   a band. The header is painted with the brand color over
+   `--nav-color-on-primary`, the ink the token layer inverts with the scheme so
+   the pairing clears AA in both (5.79:1 light, 7.69:1 dark). */
 .nav-card--highlighted {
   border-color: var(--nav-color-primary);
 }
 
 .nav-card--highlighted .nav-card__header {
+  padding-block: var(--nav-space-3);
   background: var(--nav-color-primary);
   color: var(--nav-color-on-primary);
+}
+
+.nav-card--highlighted .nav-card__description {
+  color: inherit;
 }
 
 /* Toast — the same four tones the `Toast` carries. */
@@ -474,23 +495,38 @@ a.nav-pagination__link:hover {
   color: var(--nav-color-text-muted);
 }
 
-/* Button — the solid brand-cyan call to action. AA-safe dark ink on the
-   bright cyan fill (white on cyan-500 is only 2.43:1). */
+/* Button. Sized by a control height rather than by its padding, so a button
+   sits level with the input beside it; `--sm` and `--lg` step the height and keep the
+   shape. A bare `.nav-btn` is unfilled and unshadowed; each variant brings its
+   own fill and the control shadow. */
 .nav-btn {
-  display: inline-block;
-  padding: 0.5rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--nav-space-2);
+  box-sizing: border-box;
+  min-height: var(--nav-control-h-md);
+  padding: var(--nav-space-1) var(--nav-space-4);
   border: 1px solid transparent;
-  border-radius: var(--nav-radius-sm);
+  border-radius: var(--nav-radius-md);
+  font-size: 0.875rem;
   font-weight: 700;
+  line-height: 1.25;
   text-align: center;
   text-decoration: none;
   cursor: pointer;
+}
+
+.nav-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .nav-btn--primary {
   background: var(--nav-color-primary);
   border-color: var(--nav-color-primary);
   color: var(--nav-color-on-primary);
+  box-shadow: var(--nav-shadow-xs);
 }
 
 .nav-btn--primary:hover {
@@ -504,12 +540,27 @@ a.nav-pagination__link:hover {
   background: var(--nav-color-secondary);
   border-color: var(--nav-color-secondary);
   color: var(--nav-color-on-secondary);
+  box-shadow: var(--nav-shadow-xs);
 }
 
 .nav-btn--secondary:hover {
   background: var(--nav-color-secondary-hover);
   border-color: var(--nav-color-secondary-hover);
   color: var(--nav-color-on-secondary);
+  text-decoration: none;
+}
+
+/* The bordered, unfilled button — Cancel, a row action, a group of equals. */
+.nav-btn--outline {
+  background: var(--nav-color-surface);
+  border-color: var(--nav-color-border);
+  color: var(--nav-color-text);
+  box-shadow: var(--nav-shadow-xs);
+}
+
+.nav-btn--outline:hover {
+  background: var(--nav-color-surface-raised);
+  color: var(--nav-color-text);
   text-decoration: none;
 }
 
@@ -614,7 +665,7 @@ a.nav-pagination__link:hover {
   overflow: hidden;
   border: 1px solid var(--nav-color-border);
   border-radius: var(--nav-radius);
-  box-shadow: var(--nav-shadow);
+  box-shadow: var(--nav-shadow-sm);
 }
 
 .public-shell-showcase .public-shell {
@@ -1221,24 +1272,62 @@ a.nav-pagination__link:hover {
 .nav-select {
   display: block;
   width: 100%;
-  /* `width: 100%` plus horizontal padding overflows the container under the
-     default `content-box`. Bootstrap's `*,::after,::before{box-sizing:border-box}`
-     is currently supplying this for free, so the theme looks correct only
-     because a framework it is replacing is still loaded. Stated here so the
-     controls survive Bootstrap's removal (#877). */
+  /* `width: 100%` plus horizontal padding would overflow the container under
+     the default `content-box`. */
   box-sizing: border-box;
-  padding: 0.375rem 0.75rem;
+  /* A minimum rather than a height, because the textarea wears this class. */
+  min-height: var(--nav-control-h-md);
+  padding: var(--nav-space-1) var(--nav-space-3);
   border: 1px solid var(--nav-color-border);
-  border-radius: var(--nav-radius-sm);
+  border-radius: var(--nav-radius-md);
   background: var(--nav-color-surface);
   color: var(--nav-color-text);
+  box-shadow: var(--nav-shadow-xs);
+}
+
+/* 1rem on a phone: iOS zooms the page into any field set smaller than 16px. */
+@media (min-width: 48rem) {
+  .nav-input,
+  .nav-select {
+    font-size: 0.875rem;
+  }
+}
+
+/* Focus, for every control that can wear it: the soft halo outside the box,
+   and on a bordered field the border turning the focus color as well. The
+   transparent outline is not a no-op — forced-colors mode drops box-shadow and
+   paints outlines, so it is the ring a high-contrast reader actually gets.
+
+   A control inside a clipped container (a toggle group, a tab strip, an
+   accordion item) cannot show an outside halo and keeps the inset outline its
+   own rule draws. */
+.nav-btn:focus-visible,
+.nav-input:focus,
+.nav-select:focus,
+.nav-otp__slot:focus-visible,
+.nav-calendar-picker__trigger:focus-visible,
+.nav-carousel__control:focus-visible,
+.nav-pdf__control:focus-visible,
+.nav-calendar__nav:focus-visible,
+.nav-switch__input:focus-visible,
+.nav-slider:focus-visible,
+.nav-menubar__trigger:focus-visible,
+.nav-dialog__close:focus-visible,
+.nav-toast__dismiss:focus-visible {
+  outline: var(--nav-focus-ring) solid transparent;
+  outline-offset: var(--nav-focus-offset);
+  box-shadow: var(--nav-focus-halo);
 }
 
 .nav-input:focus,
-.nav-select:focus {
-  outline: var(--nav-focus-ring) solid var(--nav-color-focus);
-  outline-offset: 1px;
-  border-color: var(--nav-color-primary);
+.nav-select:focus,
+.nav-otp__slot:focus-visible,
+.nav-calendar-picker__trigger:focus-visible,
+.nav-carousel__control:focus-visible,
+.nav-pdf__control:focus-visible,
+.nav-calendar__nav:focus-visible,
+.nav-switch__input:focus-visible {
+  border-color: var(--nav-color-focus);
 }
 
 /* Input with a leading add-on (e.g. a "$" prefix). */
@@ -1249,16 +1338,16 @@ a.nav-pagination__link:hover {
 .nav-input-group__addon {
   display: flex;
   align-items: center;
-  padding: 0 0.75rem;
+  padding: 0 var(--nav-space-3);
   border: 1px solid var(--nav-color-border);
   border-right: 0;
-  border-radius: var(--nav-radius-sm) 0 0 var(--nav-radius-sm);
+  border-radius: var(--nav-radius-md) 0 0 var(--nav-radius-md);
   background: var(--nav-color-surface-raised);
   color: var(--nav-color-text-muted);
 }
 
 .nav-input-group .nav-input {
-  border-radius: 0 var(--nav-radius-sm) var(--nav-radius-sm) 0;
+  border-radius: 0 var(--nav-radius-md) var(--nav-radius-md) 0;
 }
 
 /* Checkbox row: the box precedes an inline label. */
@@ -1377,27 +1466,18 @@ a.nav-pagination__link:hover {
   border: 1px solid var(--nav-color-border);
 }
 
-/* Secondary button — the outlined variant (e.g. a Cancel action). */
-.nav-btn--secondary {
-  background: transparent;
-  border-color: var(--nav-color-border);
-  color: var(--nav-color-text);
-}
-
-.nav-btn--secondary:hover {
-  background: var(--nav-color-surface-raised);
-  color: var(--nav-color-text);
-}
-
-/* Small status pill — review decisions. */
+/* Small status label — review decisions. */
 .nav-badge {
-  display: inline-block;
-  padding: 0.1rem 0.5rem;
-  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem var(--nav-space-2);
+  border-radius: var(--nav-radius-md);
   background: var(--nav-color-surface-subtle);
   color: var(--nav-color-primary-active);
-  font-size: 0.85em;
+  font-size: 0.75rem;
   font-weight: 700;
+  line-height: 1.25;
+  white-space: nowrap;
 }
 
 /* Page container: a back-office page renders a single <main> carrying the
@@ -1556,6 +1636,7 @@ a.nav-link:hover {
   background: var(--nav-color-danger-solid);
   color: var(--nav-color-on-danger-solid);
   border-color: var(--nav-color-danger-solid);
+  box-shadow: var(--nav-shadow-xs);
 }
 
 .nav-btn--danger:hover {
@@ -1982,11 +2063,6 @@ dialog.confirm-delete:not([open]) {
   transform: translate(1rem, -50%);
 }
 
-.nav-switch__input:focus-visible {
-  outline: var(--nav-focus-ring) solid var(--nav-color-focus);
-  outline-offset: var(--nav-focus-offset);
-}
-
 .nav-switch__input:disabled {
   opacity: 0.55;
   cursor: not-allowed;
@@ -2013,13 +2089,18 @@ dialog.confirm-delete:not([open]) {
 .nav-toggle-group {
   display: inline-flex;
   border: 1px solid var(--nav-color-border);
-  border-radius: var(--nav-radius-sm);
+  border-radius: var(--nav-radius-md);
+  box-shadow: var(--nav-shadow-xs);
   overflow: hidden;
 }
 
+/* The group's border is outside the toggles, so they take the control height
+   less the two edges. */
 .nav-toggle {
-  padding: 0.375rem 0.75rem;
+  min-height: calc(var(--nav-control-h-md) - 2px);
+  padding: var(--nav-space-1) var(--nav-space-3);
   border: 0;
+  font-size: 0.875rem;
   background: var(--nav-color-surface);
   color: var(--nav-color-text);
   font-weight: 700;
@@ -2056,7 +2137,7 @@ dialog.confirm-delete:not([open]) {
 /* Dialog and Sheet — both native <dialog>. */
 .nav-dialog {
   width: min(100%, 32rem);
-  padding: 1.25rem;
+  padding: var(--nav-space-6);
   /* The overlay edge, not the ordinary one: this border is measured against
      the scrim rather than the page. See --nav-color-overlay-edge. */
   border: 1px solid var(--nav-color-overlay-edge);
@@ -2091,6 +2172,7 @@ dialog.confirm-delete:not([open]) {
   flex: 0 0 auto;
   padding: 0 0.375rem;
   border: 0;
+  border-radius: var(--nav-radius-sm);
   background: transparent;
   color: var(--nav-color-text-muted);
   font-size: 1.25rem;
@@ -2100,11 +2182,6 @@ dialog.confirm-delete:not([open]) {
 
 .nav-dialog__close:hover {
   color: var(--nav-color-text);
-}
-
-.nav-dialog__close:focus-visible {
-  outline: var(--nav-focus-ring) solid var(--nav-color-focus);
-  outline-offset: var(--nav-focus-offset);
 }
 
 .nav-dialog__description {
@@ -2207,7 +2284,7 @@ dialog.confirm-delete:not([open]) {
   border: 1px solid var(--nav-color-overlay-edge);
   border-radius: var(--nav-radius);
   background: var(--nav-color-surface-raised);
-  box-shadow: var(--nav-shadow-lg);
+  box-shadow: var(--nav-shadow-md);
 }
 
 .nav-popover__content {
@@ -2308,13 +2385,14 @@ dialog.confirm-delete:not([open]) {
 .nav-toaster .nav-toast {
   border-block: 1px solid var(--nav-color-border);
   border-inline-end: 1px solid var(--nav-color-border);
-  box-shadow: var(--nav-shadow);
+  box-shadow: var(--nav-shadow-md);
 }
 
 .nav-toast__dismiss {
   flex: 0 0 auto;
   padding: 0 0.25rem;
   border: 0;
+  border-radius: var(--nav-radius-sm);
   background: transparent;
   color: var(--nav-color-text-muted);
   font-size: 1.1rem;
@@ -2324,11 +2402,6 @@ dialog.confirm-delete:not([open]) {
 
 .nav-toast__dismiss:hover {
   color: var(--nav-color-text);
-}
-
-.nav-toast__dismiss:focus-visible {
-  outline: var(--nav-focus-ring) solid var(--nav-color-focus);
-  outline-offset: var(--nav-focus-offset);
 }
 
 /* Tabs — the client-side panel. The link variant reuses `.nav-tabs` above. */
@@ -2581,7 +2654,8 @@ dialog.confirm-delete:not([open]) {
   display: inline-flex;
   overflow: hidden;
   border: 1px solid var(--nav-color-border);
-  border-radius: var(--nav-radius-sm);
+  border-radius: var(--nav-radius-md);
+  box-shadow: var(--nav-shadow-xs);
 }
 
 .nav-button-group--vertical {
@@ -2602,6 +2676,12 @@ dialog.confirm-delete:not([open]) {
 .nav-button-group > .nav-btn {
   border-radius: 0;
   border-color: transparent;
+  box-shadow: none;
+}
+
+/* The group clips, so an outside halo would be cut off. */
+.nav-button-group > .nav-btn:focus-visible {
+  box-shadow: inset 0 0 0 var(--nav-focus-ring) var(--nav-color-focus);
 }
 
 /* --------------------------------------------------------------- Carousel -- */
@@ -2645,13 +2725,14 @@ dialog.confirm-delete:not([open]) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.875rem;
-  min-height: 1.875rem;
-  padding: 0 0.5rem;
+  min-width: var(--nav-control-h-sm);
+  min-height: var(--nav-control-h-sm);
+  padding: 0 var(--nav-space-2);
   border: 1px solid var(--nav-color-border);
-  border-radius: var(--nav-radius-sm);
+  border-radius: var(--nav-radius-md);
   background: var(--nav-color-surface);
   color: var(--nav-color-text);
+  box-shadow: var(--nav-shadow-xs);
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
@@ -2661,13 +2742,6 @@ dialog.confirm-delete:not([open]) {
 .nav-pdf__control:hover:not(:disabled),
 .nav-calendar__nav:hover:not(:disabled) {
   background: var(--nav-color-surface-raised);
-}
-
-.nav-carousel__control:focus-visible,
-.nav-pdf__control:focus-visible,
-.nav-calendar__nav:focus-visible {
-  outline: var(--nav-focus-ring) solid var(--nav-color-focus);
-  outline-offset: var(--nav-focus-offset);
 }
 
 .nav-carousel__control:disabled,
@@ -2730,14 +2804,9 @@ dialog.confirm-delete:not([open]) {
 
 .nav-slider {
   width: 100%;
+  border-radius: 999px;
   accent-color: var(--nav-color-primary);
   cursor: pointer;
-}
-
-.nav-slider:focus-visible {
-  outline: var(--nav-focus-ring) solid var(--nav-color-focus);
-  outline-offset: var(--nav-focus-offset);
-  border-radius: 999px;
 }
 
 .nav-slider:disabled {
@@ -2753,23 +2822,19 @@ dialog.confirm-delete:not([open]) {
 }
 
 .nav-otp__slot {
-  width: 2.5rem;
-  height: 3rem;
+  box-sizing: border-box;
+  width: var(--nav-control-h-md);
+  height: var(--nav-control-h-md);
   padding: 0;
   border: 1px solid var(--nav-color-border);
-  border-radius: var(--nav-radius-sm);
+  border-radius: var(--nav-radius-md);
   background: var(--nav-color-surface);
   color: var(--nav-color-text);
+  box-shadow: var(--nav-shadow-xs);
   font-family: var(--nav-font-mono);
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-variant-numeric: tabular-nums;
   text-align: center;
-}
-
-.nav-otp__slot:focus-visible {
-  outline: var(--nav-focus-ring) solid var(--nav-color-focus);
-  outline-offset: 1px;
-  border-color: var(--nav-color-primary);
 }
 
 /* --------------------------------------------------------------- Calendar -- */
@@ -2873,20 +2938,22 @@ dialog.confirm-delete:not([open]) {
   display: block;
   box-sizing: border-box;
   width: 100%;
-  padding: 0.375rem 0.75rem;
+  min-height: var(--nav-control-h-md);
+  padding: var(--nav-space-1) var(--nav-space-3);
   border: 1px solid var(--nav-color-border);
-  border-radius: var(--nav-radius-sm);
+  border-radius: var(--nav-radius-md);
   background: var(--nav-color-surface);
   color: var(--nav-color-text);
+  box-shadow: var(--nav-shadow-xs);
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
 
-.nav-calendar-picker__trigger:focus-visible {
-  outline: var(--nav-focus-ring) solid var(--nav-color-focus);
-  outline-offset: 1px;
-  border-color: var(--nav-color-primary);
+@media (min-width: 48rem) {
+  .nav-calendar-picker__trigger {
+    font-size: 0.875rem;
+  }
 }
 
 .nav-calendar-picker__placeholder {
@@ -2901,7 +2968,7 @@ dialog.confirm-delete:not([open]) {
   width: max-content;
   max-width: min(22rem, 90vw);
   border-radius: var(--nav-radius);
-  box-shadow: var(--nav-shadow-lg);
+  box-shadow: var(--nav-shadow-md);
 }
 
 /* The grid inside already draws a border and a surface; raise it so it reads
@@ -2941,7 +3008,7 @@ dialog.confirm-delete:not([open]) {
   border: 1px solid var(--nav-color-overlay-edge);
   border-radius: var(--nav-radius);
   background: var(--nav-color-surface-raised);
-  box-shadow: var(--nav-shadow-lg);
+  box-shadow: var(--nav-shadow-md);
 }
 
 /* ------------------------------------------------------------ ContextMenu -- */
@@ -2959,7 +3026,7 @@ dialog.confirm-delete:not([open]) {
   border: 1px solid var(--nav-color-overlay-edge);
   border-radius: var(--nav-radius);
   background: var(--nav-color-surface-raised);
-  box-shadow: var(--nav-shadow-lg);
+  box-shadow: var(--nav-shadow-md);
 }
 
 /* ---------------------------------------------------------------- Menubar -- */
@@ -2993,11 +3060,6 @@ dialog.confirm-delete:not([open]) {
   background: var(--nav-color-surface-subtle);
 }
 
-.nav-menubar__trigger:focus-visible {
-  outline: var(--nav-focus-ring) solid var(--nav-color-focus);
-  outline-offset: -2px;
-}
-
 .nav-menubar__content {
   top: calc(100% + 0.25rem);
   left: 0;
@@ -3015,14 +3077,19 @@ dialog.confirm-delete:not([open]) {
   height: auto;
 }
 
+/* Horizontal rules only, dashed, and no axis lines or tick marks: the labels
+   carry the scale and the marks carry the data. */
 .nav-chart__grid {
   stroke: var(--nav-chart-grid);
   stroke-width: 1;
+  stroke-dasharray: 3 3;
 }
 
+/* In viewBox units, which the SVG scales with its width. */
 .nav-chart__tick {
   fill: var(--nav-color-text-muted);
-  font-size: 11px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
 .nav-chart__line {
@@ -3031,8 +3098,9 @@ dialog.confirm-delete:not([open]) {
   stroke-linejoin: round;
 }
 
-.nav-chart__bar {
-  rx: 2;
+/* Under the gradient's own stops, which run from 0.8 to 0.1. */
+.nav-chart__area {
+  fill-opacity: 0.4;
 }
 
 .nav-chart__slice {
@@ -3147,11 +3215,12 @@ dialog.confirm-delete:not([open]) {
 .nav-chart-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.375rem 1rem;
-  margin: 0.5rem 0 0;
+  justify-content: center;
+  gap: var(--nav-space-1) var(--nav-space-4);
+  margin: var(--nav-space-3) 0 0;
   padding: 0;
   list-style: none;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
 }
 
 .nav-chart-legend__entry {
@@ -3161,9 +3230,10 @@ dialog.confirm-delete:not([open]) {
 }
 
 .nav-chart-legend__swatch {
-  width: 0.75rem;
-  height: 0.75rem;
-  border-radius: var(--nav-radius-sm);
+  flex: 0 0 auto;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: var(--nav-radius-xs);
 }
 
 /* -------------------------------------------------------------- GraphView -- */
@@ -3367,7 +3437,7 @@ dialog.confirm-delete:not([open]) {
    over the canvas so a selection lands on the glyphs a reader can see. */
 .nav-pdf__page {
   position: relative;
-  box-shadow: var(--nav-shadow);
+  box-shadow: var(--nav-shadow-sm);
 }
 
 .nav-pdf__canvas {
@@ -3857,15 +3927,21 @@ button.nav-steps__step:focus-visible {
 
 /* -------------------------------------------------- Button sizes, for these -- */
 
+.nav-btn--sm {
+  min-height: var(--nav-control-h-sm);
+  padding-inline: var(--nav-space-3);
+  gap: 0.375rem;
+}
+
 /* The 44px target; see `ButtonSize` in Navigation.tsx. */
 .nav-btn--lg {
-  min-height: 2.75rem;
-  padding: var(--nav-space-3) var(--nav-space-6);
-  font-size: 1.0625rem;
+  min-height: var(--nav-control-h-lg);
+  padding-inline: var(--nav-space-6);
+  font-size: 1rem;
 }
 
 .nav-btn--block {
-  display: block;
+  display: flex;
   width: 100%;
 }
 

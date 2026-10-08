@@ -234,7 +234,9 @@ export function Gallery() {
           <div className="gallery__row">
             <NavButton variant="primary">Primary</NavButton>
             <NavButton variant="secondary">Secondary</NavButton>
+            <NavButton variant="outline">Outline</NavButton>
             <NavButton variant="danger">Delete</NavButton>
+            <NavButton variant="outline" size="sm">Small</NavButton>
             <NavButton>Unvariant</NavButton>
             <NavLinkButton variant="primary" href="#x">Link as button</NavLinkButton>
             <NavBadge>Approved</NavBadge>
@@ -243,8 +245,8 @@ export function Gallery() {
 
         <Section title="Cards">
           <div className="gallery__grid">
-            <Card header="Plain card" footer="Footer band">
-              <p>The shared surface: border, radius, shadow.</p>
+            <Card header="Plain card" description="A muted line under the title." footer="Footer">
+              <p>The shared surface: border, radius, shadow, and space instead of bands.</p>
             </Card>
             <Card header="Recommended" highlighted>
               <p>The brand anchor treatment — the header band takes the brand color.</p>

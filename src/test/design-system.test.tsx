@@ -84,7 +84,7 @@ describe('Card', () => {
     expect(screen.getByRole('heading', { name: 'Business plan' })).toBeInTheDocument()
   })
 
-  it('renders header and footer bands when given them', () => {
+  it('renders a header and footer when given them', () => {
     const { container } = render(
       <Card header="Head" footer="Foot" id="c1" className="extra">
         Body
@@ -94,6 +94,23 @@ describe('Card', () => {
     expect(container.querySelector('.nav-card__footer')).toHaveTextContent('Foot')
     expect(container.querySelector('.nav-card')).toHaveClass('extra')
     expect(container.querySelector('#c1')).not.toBeNull()
+  })
+
+  it('sets a description under the title, with or without one', () => {
+    const { container, rerender } = render(
+      <Card header="Head" description="Muted line">
+        Body
+      </Card>,
+    )
+    const header = container.querySelector('.nav-card__header')
+    expect(header).toHaveTextContent('Head')
+    expect(header?.querySelector('.nav-card__description')).toHaveTextContent('Muted line')
+
+    rerender(<Card description="Alone">Body</Card>)
+    expect(container.querySelector('.nav-card__header .nav-card__description')).toHaveTextContent('Alone')
+
+    rerender(<Card header="Head">Body</Card>)
+    expect(container.querySelector('.nav-card__description')).toBeNull()
   })
 
   it('carries the brand anchor and the centered body as modifiers', () => {
@@ -301,7 +318,7 @@ describe('Navigation', () => {
     expect(screen.getByRole('button', { name: 'Save' })).toHaveAttribute('type', 'button')
   })
 
-  it.each(['primary', 'secondary', 'danger'] as const)('carries the %s variant', (variant) => {
+  it.each(['primary', 'secondary', 'outline', 'danger'] as const)('carries the %s variant', (variant) => {
     render(<NavButton variant={variant}>Go</NavButton>)
     expect(screen.getByRole('button', { name: 'Go' })).toHaveClass('nav-btn', `nav-btn--${variant}`)
   })

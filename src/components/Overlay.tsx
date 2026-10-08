@@ -203,7 +203,7 @@ export function Popover({ trigger, children, label, align = 'start' }: PopoverPr
       <button
         ref={triggerRef}
         type="button"
-        className="nav-btn nav-btn--secondary"
+        className="nav-btn nav-btn--outline"
         aria-expanded={open}
         aria-controls={open ? id : undefined}
         onClick={() => setOpen((current) => !current)}
@@ -303,7 +303,7 @@ export function DropdownMenu({ trigger, items, label, align = 'start' }: Dropdow
       <button
         ref={triggerRef}
         type="button"
-        className="nav-btn nav-btn--secondary"
+        className="nav-btn nav-btn--outline"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? id : undefined}

@@ -13,10 +13,11 @@ import { Icon } from './Icon'
 
 /* ----------------------------------------------------------------- Button -- */
 
-export type ButtonVariant = 'primary' | 'secondary' | 'danger'
+/** `secondary` is the quiet filled button; `outline` is the bordered, unfilled one. */
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger'
 
-/** `md` is the button the dense pages were drawn around; `lg` is the 44px target for a page where the button is the point. */
-export type ButtonSize = 'md' | 'lg'
+/** `md` is the button the dense pages were drawn around; `sm` fits a toolbar or a table row; `lg` is the 44px target for a page where the button is the point. */
+export type ButtonSize = 'sm' | 'md' | 'lg'
 
 interface ButtonShape {
   variant?: ButtonVariant
@@ -29,7 +30,7 @@ function buttonClasses({ variant, size, block }: ButtonShape, extra?: string) {
   return [
     'nav-btn',
     variant ? `nav-btn--${variant}` : null,
-    size === 'lg' ? 'nav-btn--lg' : null,
+    size === 'sm' || size === 'lg' ? `nav-btn--${size}` : null,
     block ? 'nav-btn--block' : null,
     extra,
   ]

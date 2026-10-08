@@ -239,7 +239,7 @@ export function RowActions({ actions, label }: RowActionsProps) {
         action.kind === 'link' ? (
           <a
             key={action.label}
-            className="row-action nav-btn nav-btn--secondary"
+            className="row-action nav-btn nav-btn--outline"
             href={action.href}
             aria-label={`${action.label} — ${label}`}
           >
@@ -253,7 +253,7 @@ export function RowActions({ actions, label }: RowActionsProps) {
             ))}
             <button
               type="submit"
-              className={`nav-btn ${action.destructive ? 'nav-btn--danger' : 'nav-btn--secondary'}`}
+              className={`nav-btn ${action.destructive ? 'nav-btn--danger' : 'nav-btn--outline'}`}
               aria-label={`${action.label} — ${label}`}
             >
               {action.icon ? <Icon name={action.icon} /> : null}

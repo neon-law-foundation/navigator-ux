@@ -106,6 +106,70 @@ Redeclare inside `@media (prefers-color-scheme: dark)` too. A ramp that reads on
 on a near-black ground, and skipping the dark block is how a brand ends up invisible in exactly one
 scheme.
 
+## Default tests: two lines
+
+The library ships the checks it holds itself to, for your repository to run too. Adopt both:
+
+```ts
+// vite.config.ts (or vitest.config.ts)
+test: {
+  environment: 'jsdom',
+  setupFiles: ['@neon-law-source-code/navigator-ux/testing/setup'],
+}
+```
+
+```json
+"scripts": {
+  "check:ux": "navigator-ux check --portal"
+}
+```
+
+**The setup file** fails any test that renders an axe violation, calls `console.error`, or fetches
+off-origin or outside `/app/api`. It needs `axe-core` as a devDependency (`pnpm add -D axe-core`),
+alongside the Vitest and Testing Library you already have. It runs Testing Library's cleanup itself,
+after the checks — the reason is in `src/testing/setup.ts`.
+
+Nothing in it is all-or-nothing. Excuse one case in one test, or turn a check off for the suite:
+
+```ts
+import {
+  allowAxeViolation,
+  allowConsoleError,
+  allowRequest,
+  configureNavigatorTesting,
+  expectNoAxeViolations,
+} from '@neon-law-source-code/navigator-ux/testing'
+
+allowConsoleError(/not wrapped in act/)        // this test only
+allowRequest('/files/')                          // a URL prefix, or a RegExp
+allowAxeViolation('heading-order')               // an axe rule id
+configureNavigatorTesting({ network: { allow: ['/assets/'] } }) // every test after it
+await expectNoAxeViolations(container)           // explicit, without the setup file
+```
+
+**The CLI** runs against the repository, not the tests, and prints one line per check:
+
+| Check | Fails on |
+| --- | --- |
+| `manifest` | Any spec for this package other than a release tarball URL — `link:`, `workspace:`, `github:`, or a tag that disagrees with the tarball name, including in `pnpm.overrides` |
+| `stylesheet-imported` | Nothing under `src` importing `@neon-law-source-code/navigator-ux/styles.css` |
+| `brand-contrast` | A brand layer (`--nav-color-*` on `:root:root`) that, resolved on the shipped tokens, puts any pairing under its WCAG floor in either scheme |
+| `portal-no-repaint` | With `--portal` only: any `--nav-*` redeclared in `src` CSS. A Project portal wears the palette as shipped |
+| `no-literal-colors` | A literal color in `src` CSS, TS, or TSX outside a brand layer or a test |
+| `bundle-origin` | An off-origin reference in the build (`--dist`, default `dist`); skipped with a notice before a build |
+
+`--skip <name>` drops one, `--cwd`/`--src`/`--dist` point it elsewhere, and `--help` lists the rest.
+It exits non-zero on any failure, so it gates CI as it stands:
+
+```yaml
+- run: pnpm install --frozen-lockfile
+- run: pnpm build
+- run: pnpm check:ux
+- run: pnpm test
+```
+
+Run it after the build so `bundle-origin` has something to read.
+
 ## `pnpm check` order is load-bearing in a consumer
 
 ```

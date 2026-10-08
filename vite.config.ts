@@ -26,14 +26,19 @@ export default defineConfig({
   // import the generated OpenAPI schema as `./api/schema`.
   plugins: [
     react(),
-    dts({ include: ['src'], exclude: ['src/test'], copyDtsFiles: true, rollupTypes: true }),
+    dts({ include: ['src'], exclude: ['src/test', 'src/cli'], copyDtsFiles: true, rollupTypes: true }),
   ],
   build: {
     lib: {
-      entry: resolve(here, 'src/index.ts'),
-      name: 'NeonLawUx',
+      // `testing/*` is a separate entry so nothing in it — axe, Vitest hooks —
+      // can reach an application bundle through the main one.
+      entry: {
+        index: resolve(here, 'src/index.ts'),
+        'testing/index': resolve(here, 'src/testing/index.ts'),
+        'testing/setup': resolve(here, 'src/testing/setup.ts'),
+      },
       formats: ['es', 'cjs'],
-      fileName: (format) => (format === 'es' ? 'index.js' : 'index.cjs'),
+      fileName: (format, entry) => `${entry}.${format === 'es' ? 'js' : 'cjs'}`,
     },
     rollupOptions: {
       // React is supplied by the consuming app, never bundled here.
@@ -52,7 +57,11 @@ export default defineConfig({
         id === 'topojson-client' ||
         id.startsWith('topojson-client/') ||
         id === 'pdfjs-dist' ||
-        id.startsWith('pdfjs-dist/'),
+        id.startsWith('pdfjs-dist/') ||
+        // The testing entry's optional peers: the consumer's own copies.
+        id === 'axe-core' ||
+        id === 'vitest' ||
+        id === '@testing-library/react',
       output: {
         globals: { react: 'React', 'react-dom': 'ReactDOM' },
         // Emit assets under stable, unhashed names so the `exports` map can
@@ -79,7 +88,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
-      include: ['src/**/*.{ts,tsx}'],
+      include: ['src/**/*.{ts,tsx,mjs}'],
       exclude: [
         'src/test/**',
         // Re-exports only. Importing it in a test would score 100% without

@@ -9,7 +9,8 @@
 :root:root {
   --nav-font-family: 'Pirata One', Georgia, serif;
 
-  --nav-color-primary: #b45535;
+  /* 4.52:1 on the #f5f1ee band and 5.08:1 under white ink; #b45535 was 4.36:1 on the band. */
+  --nav-color-primary: #b05334;
   --nav-color-primary-hover: #963f27;
   --nav-color-primary-active: #78321f;
   --nav-color-on-primary: #ffffff;
@@ -17,7 +18,7 @@
   --nav-color-link: #8a321e;
   --nav-color-link-hover: #652313;
   --nav-color-surface-subtle: #f5f1ee;
-  --nav-color-focus: #b45535;
+  --nav-color-focus: #b05334;
   --nav-color-bg: #ffffff;
   --nav-color-surface: #ffffff;
   --nav-color-surface-raised: #faf8f6;

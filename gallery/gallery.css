@@ -859,11 +859,6 @@
   margin-bottom: var(--nav-space-2);
 }
 
-.neon-site .nav-card__header,
-.neon-site .nav-card__body {
-  padding: var(--nav-space-6);
-}
-
 .neon-site .pricing-grid {
   gap: var(--nav-space-6);
 }
