@@ -125,7 +125,7 @@ describe('ChoiceGroup', () => {
       <ChoiceGroup legend="What do you need?" name="need" choices={NEEDS} onValueChange={onValueChange} required />,
     )
 
-    const group = screen.getByRole('group', { name: /What do you need\?/ })
+    const group = screen.getByRole('radiogroup', { name: /What do you need\?/ })
     expect(group).toHaveAttribute('aria-required', 'true')
     expect(group.className).toBe('nav-choice-group')
     expect(group.querySelector('legend')).not.toHaveClass('nav-visually-hidden')
@@ -170,7 +170,10 @@ describe('ChoiceGroup', () => {
         required
       />,
     )
-    expect(screen.getByRole('group').className).toBe('nav-choice-group nav-choice-group--cols-2')
+    // No checkbox-group role carries `aria-required`, so the legend says it.
+    const group = screen.getByRole('group', { name: /What do you have\?.*\(required\)/ })
+    expect(group.className).toBe('nav-choice-group nav-choice-group--cols-2')
+    expect(group).not.toHaveAttribute('aria-required')
     const [name, owners] = screen.getAllByRole('checkbox') as [HTMLElement, HTMLElement]
     expect(name).toBeChecked()
     // `required` would mean "all of these" on checkboxes, so it is not passed down.
@@ -196,7 +199,7 @@ describe('ChoiceGroup', () => {
         error="Choose one."
       />,
     )
-    const group = screen.getByRole('group', { name: 'Delivery' })
+    const group = screen.getByRole('radiogroup', { name: 'Delivery' })
     expect(group.querySelector('legend')).toHaveClass('nav-visually-hidden')
     expect(group.className).toBe('nav-choice-group nav-choice-group--cols-3 nav-field--invalid')
     expect(group).toHaveAttribute('aria-invalid', 'true')
@@ -210,8 +213,8 @@ describe('ChoiceGroup', () => {
 
   it('describes itself with nothing when there is no help and no error', () => {
     render(<ChoiceGroup legend="Plain" name="plain" choices={[{ value: 'a', label: 'A' }]} />)
-    expect(screen.getByRole('group')).not.toHaveAttribute('aria-describedby')
-    expect(screen.getByRole('group')).not.toHaveAttribute('aria-invalid')
+    expect(screen.getByRole('radiogroup')).not.toHaveAttribute('aria-describedby')
+    expect(screen.getByRole('radiogroup')).not.toHaveAttribute('aria-invalid')
   })
 })
 
