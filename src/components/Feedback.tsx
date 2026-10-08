@@ -135,7 +135,7 @@ export function ImpersonationBanner({
         {Object.entries(hiddenFields ?? {}).map(([fieldName, value]) => (
           <input key={fieldName} type="hidden" name={fieldName} value={value} />
         ))}
-        <button type="submit" className="nav-btn nav-btn--secondary">
+        <button type="submit" className="nav-btn nav-btn--outline">
           {stopLabel}
         </button>
       </form>

@@ -84,7 +84,7 @@ export function FocusSet({ Section }: { Section: ComponentType<SectionProps> }) 
                 lede="You will hear from us by email before the end of the next business day, with a flat fee and the first step."
                 actions={
                   <NavLinkButton
-                    variant="secondary"
+                    variant="outline"
                     size="lg"
                     href="#one-thing-at-a-time"
                     onClick={(event) => {
@@ -177,7 +177,7 @@ export function FocusSet({ Section }: { Section: ComponentType<SectionProps> }) 
                   <NavLinkButton variant="primary" size="lg" href="#hero">
                     Start a matter
                   </NavLinkButton>
-                  <NavLinkButton variant="secondary" size="lg" href="#hero">
+                  <NavLinkButton variant="outline" size="lg" href="#hero">
                     Book a call
                   </NavLinkButton>
                 </>

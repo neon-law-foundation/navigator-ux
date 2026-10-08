@@ -778,9 +778,53 @@ describe('Charts', () => {
     expect(path).not.toContain('NaN')
   })
 
-  it('omits the endpoint when there is no data', () => {
-    const { container } = render(<LineChart data={[]} label="Nothing" />)
-    expect(container.querySelector('.nav-chart__endpoint')).not.toBeInTheDocument()
+  it('draws no point markers on a trend', () => {
+    const { container } = render(<LineChart data={SERIES} label="Trend" />)
+    expect(container.querySelector('circle')).not.toBeInTheDocument()
+  })
+
+  it('fades the area from the series color and keeps the stroke on top', () => {
+    const { container } = render(<AreaChart data={SERIES} label="Trend" series={2} />)
+    const stops = container.querySelectorAll('linearGradient stop')
+    expect(Array.from(stops, (stop) => stop.getAttribute('stop-color'))).toEqual([
+      seriesColor(2),
+      seriesColor(2),
+    ])
+    const top = Number(stops[0]?.getAttribute('stop-opacity'))
+    const bottom = Number(stops[1]?.getAttribute('stop-opacity'))
+    expect(top).toBeGreaterThan(bottom)
+    const paths = Array.from(container.querySelectorAll('path'))
+    expect(paths.indexOf(container.querySelector('.nav-chart__line') as SVGPathElement)).toBeGreaterThan(
+      paths.indexOf(container.querySelector('.nav-chart__area') as SVGPathElement),
+    )
+  })
+
+  it('rounds the top of each bar and leaves its base square', () => {
+    const { container } = render(<BarChart data={SERIES} label="Bars" />)
+    const bars = container.querySelectorAll('.nav-chart__bar')
+    expect(bars).toHaveLength(SERIES.length)
+    for (const bar of bars) {
+      const d = bar.getAttribute('d') ?? ''
+      expect(d).not.toContain('NaN')
+      // Two quadratic corners, both at the top.
+      expect(d.match(/Q/g)).toHaveLength(2)
+      expect(bar).toHaveAttribute('fill', seriesColor(0))
+    }
+  })
+
+  it('draws a zero-height bar without a corner it cannot carry', () => {
+    const { container } = render(
+      <BarChart
+        data={[
+          { label: 'A', value: 0 },
+          { label: 'B', value: 4 },
+        ]}
+        label="Zero"
+      />,
+    )
+    const flat = container.querySelector('.nav-chart__bar')?.getAttribute('d') ?? ''
+    expect(flat).not.toContain('NaN')
+    expect(flat).not.toContain('-')
   })
 
   it('renders a legend keyed to the series colors', () => {
@@ -827,6 +871,10 @@ describe('Charts', () => {
     const donut = pie.container.querySelector('.nav-chart__slice')?.getAttribute('d') ?? ''
     expect(solid).not.toBe(donut)
     expect(donut).not.toContain('NaN')
+    // A rounded donut slice is drawn with arcs at its corners as well as along
+    // its edges, so it carries more arc commands than the solid wedge.
+    const arcs = (path: string) => (path.match(/A/g) ?? []).length
+    expect(arcs(donut)).toBeGreaterThan(arcs(solid))
   })
 })
 

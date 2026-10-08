@@ -22,7 +22,7 @@
  * reach for size or color, which is the distinction that actually survives at
  * small sizes. Vendoring a third weight is a design change, not a bug fix.
  *
- * **Radii.** Same shape of problem. The radius scale is three tokens, and
+ * **Radii.** Same shape of problem. The radius scale is a set of tokens, and
  * `matter.css` carried literal `3px`, `7px`, and `12px` corners that predated
  * them, so a panel and a card built from the same system rounded differently.
  *
@@ -135,7 +135,7 @@ if (failures.length > 0) {
   console.error(
     `\n${failures.length} found. Weight hierarchy here is binary — 400 or 700 — so a rule that` +
       `\nwants "a bit bolder" changes size or color instead. Corners come from --nav-radius,` +
-      `\n--nav-radius-sm, or --nav-radius-lg; a pill is 999px and a circle is 50%.`,
+      `\n--nav-radius-xs, -sm, -md, -lg, or -xl; a pill is 999px and a circle is 50%.`,
   )
   process.exit(1)
 }

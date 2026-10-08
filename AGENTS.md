@@ -128,7 +128,7 @@ server-rendered endpoint rather than parsing anything itself.
 **Design tokens are designed here, and every ratio is enforced.** `src/styles/tokens.css`
 used to be a byte-for-byte transcription of a client's stylesheet, kept frozen because changing a
 value moved live client pages. That constraint is gone. What replaced it is arithmetic: every pairing
-carries its measured contrast ratio, and `pnpm check:contrast` recomputes all 102 of them from the file
+carries its measured contrast ratio, and `pnpm check:contrast` recomputes all 106 of them from the file
 and fails the build if one drops under its floor.
 
 That gate is not decoration. The first time it ran it found two status colors that had never cleared
@@ -145,10 +145,10 @@ rounded; the surfaces ported from the static pages — panels, cards, callouts, 
 claim table, the source thread — were flat, so the two halves of the library did not read as one
 system. They all take a `--nav-radius-*` token now. Three kinds of square corner are still correct
 and are the only ones left: a band that meets its container's edge (`.panel__head`, `.draft-meta`,
-`.nav-card__header`), which stays square because the *container* clips it; full-bleed page chrome
-(`.case-nav`, `.site-header`, `.impersonation-banner`), which has no corners on the page to round;
-and a surface deliberately filling the viewport, which is what `.authority-dialog__panel` resets to
-under the mobile breakpoint.
+the highlighted `.nav-card__header`), which stays square because the *container* clips it; full-bleed
+page chrome (`.case-nav`, `.site-header`, `.impersonation-banner`), which has no corners on the page
+to round; and a surface deliberately filling the viewport, which is what `.authority-dialog__panel`
+resets to under the mobile breakpoint.
 
 A container whose children run edge to edge gets `overflow: hidden` alongside its radius rather than
 matching radii on each child, which is what `.nav-card` already did and what the rest now copy.

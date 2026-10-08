@@ -97,7 +97,7 @@ export function ConfirmDelete({
               {confirmLabel}
             </button>
           </form>
-          <button type="button" className="nav-btn nav-btn--secondary" onClick={onCancel}>
+          <button type="button" className="nav-btn nav-btn--outline" onClick={onCancel}>
             {cancelLabel}
           </button>
         </div>

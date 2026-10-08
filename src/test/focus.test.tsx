@@ -376,6 +376,9 @@ describe('NavButton sizes', () => {
           Big
         </NavButton>
         <NavButton size="md">Plain</NavButton>
+        <NavButton variant="outline" size="sm">
+          Small
+        </NavButton>
         <NavLinkButton href="#x" size="lg">
           Link
         </NavLinkButton>
@@ -383,6 +386,7 @@ describe('NavButton sizes', () => {
     )
     expect(screen.getByRole('button', { name: 'Big' }).className).toBe('nav-btn nav-btn--primary nav-btn--lg nav-btn--block')
     expect(screen.getByRole('button', { name: 'Plain' }).className).toBe('nav-btn')
+    expect(screen.getByRole('button', { name: 'Small' }).className).toBe('nav-btn nav-btn--outline nav-btn--sm')
     expect(screen.getByRole('link', { name: 'Link' }).className).toBe('nav-btn nav-btn--lg')
   })
 })

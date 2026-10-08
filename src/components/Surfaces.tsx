@@ -22,13 +22,14 @@ import { initialsFor } from '../lib/initials'
 export interface CardProps {
   /** A decorative local glyph above the card content. Hidden from assistive technology. */
   icon?: IconName | ReactElement
-  /** Header band. Omit for a card that is only a body. */
+  /** The card's title. Omit for a card that is only a body. */
   header?: ReactNode
-  /** Footer band, below a divider. */
+  /** A muted line under the title. */
+  description?: ReactNode
   footer?: ReactNode
   /**
    * The brand-anchored "this one" treatment: the border takes the brand color
-   * and the header band is filled with it.
+   * and the header becomes a band filled with it.
    */
   highlighted?: boolean
   /** Center the body — used by short, single-statement cards. */
@@ -42,6 +43,7 @@ export interface CardProps {
 export function Card({
   icon,
   header,
+  description,
   footer,
   highlighted,
   centered,
@@ -60,7 +62,12 @@ export function Card({
           {typeof icon === 'string' ? <Icon name={icon} /> : icon}
         </div>
       ) : null}
-      {header ? <div className="nav-card__header">{header}</div> : null}
+      {header || description ? (
+        <div className="nav-card__header">
+          {header}
+          {description ? <p className="nav-card__description">{description}</p> : null}
+        </div>
+      ) : null}
       <div className={centered ? 'nav-card__body nav-card__body--center' : 'nav-card__body'}>
         {children}
       </div>
@@ -72,7 +79,7 @@ export function Card({
 /* ------------------------------------------------------------ PricingCard -- */
 
 export interface PricingCardProps {
-  /** The plan name, in the header band. */
+  /** The plan name, in the header — a filled band when `recommended`. */
   name: ReactNode
   /** The headline figure — "$4,500", "Free". Rendered at display size. */
   amount: ReactNode

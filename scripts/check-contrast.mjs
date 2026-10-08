@@ -54,7 +54,15 @@ function resolveToken(scheme, name, seen = new Set()) {
   const value = scheme.get(name)
   if (value === undefined) throw new Error(`${name} is not declared.`)
   const indirect = value.match(/^var\(\s*(--[\w-]+)\s*\)$/)
-  return indirect ? resolveToken(scheme, indirect[1], seen) : value
+  if (indirect) return resolveToken(scheme, indirect[1], seen)
+  // A token faded toward transparent — the focus halo — is that color at an
+  // alpha, which `channels` already composites.
+  const faded = value.match(/^color-mix\(\s*in srgb\s*,\s*var\(\s*(--[\w-]+)\s*\)\s+([\d.]+)%\s*,\s*transparent\s*\)$/)
+  if (faded) {
+    const [r, g, b] = channels(resolveToken(scheme, faded[1], seen))
+    return `rgba(${r}, ${g}, ${b}, ${Number(faded[2]) / 100})`
+  }
+  return value
 }
 
 /** #rgb, #rrggbb, and rgba() over an opaque backdrop, to [r, g, b] 0–255. */
@@ -152,6 +160,8 @@ const PAIRS = [
   // Non-text that carries meaning.
   ['--nav-color-focus', '--nav-color-bg', NON_TEXT],
   ['--nav-color-focus', '--nav-color-surface-raised', NON_TEXT],
+  ['--nav-color-focus-halo', '--nav-color-bg', NON_TEXT],
+  ['--nav-color-focus-halo', '--nav-color-surface-raised', NON_TEXT],
   ['--nav-color-success-border', '--nav-color-success-subtle', TINT],
   ['--nav-color-danger-border', '--nav-color-danger-subtle', TINT],
   ['--nav-color-warning-border', '--nav-color-warning-subtle', TINT],

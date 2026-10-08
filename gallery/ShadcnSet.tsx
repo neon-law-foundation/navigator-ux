@@ -209,7 +209,7 @@ export function ShadcnSet({ Section }: { Section: ComponentType<SectionProps> })
           <NavButton variant="primary" onClick={() => setDialogOpen(true)}>
             Open dialog
           </NavButton>
-          <NavButton variant="secondary" onClick={() => setSheetOpen(true)}>
+          <NavButton variant="outline" onClick={() => setSheetOpen(true)}>
             Open sheet
           </NavButton>
         </div>
@@ -221,7 +221,7 @@ export function ShadcnSet({ Section }: { Section: ComponentType<SectionProps> })
           description="Whoever you pick receives the file and the calendar."
           footer={
             <>
-              <NavButton variant="secondary" onClick={() => setDialogOpen(false)}>
+              <NavButton variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancel
               </NavButton>
               <NavButton variant="primary" onClick={() => setDialogOpen(false)}>
@@ -278,7 +278,7 @@ export function ShadcnSet({ Section }: { Section: ComponentType<SectionProps> })
           />
 
           <Tooltip content="Removes the matter from the active list without deleting it.">
-            <NavButton variant="secondary">
+            <NavButton variant="outline">
               <Icon name="eye" /> Hover or focus me
             </NavButton>
           </Tooltip>
@@ -294,7 +294,7 @@ export function ShadcnSet({ Section }: { Section: ComponentType<SectionProps> })
             Raise a toast
           </NavButton>
           <NavButton
-            variant="secondary"
+            variant="outline"
             onClick={() => toast('This one stays until dismissed', { tone: 'warning', duration: 0 })}
           >
             Raise a sticky one
