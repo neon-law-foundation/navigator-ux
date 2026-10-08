@@ -209,10 +209,10 @@ export function HarvardOutlineViewer({
     setInternalId(units[0]?.id ?? '')
   }, [activeId, internalId, units])
 
-  // The highlight follows the reader's place: the last unit whose top has
-  // reached the top of the view, recomputed from every unit once a frame while
-  // the document scrolls. Judging only the units whose visibility just changed
-  // settles a unit behind after an instant jump.
+  // The highlight follows the reader's place (see lib/reader-place.ts), from
+  // every unit once a frame while the document scrolls. An observer reporting
+  // only the units whose visibility changed settles a unit behind after an
+  // instant jump.
   useEffect(() => {
     const pane = paneRef.current
     if (!pane || units.length === 0) return undefined

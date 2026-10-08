@@ -477,7 +477,7 @@ export function Gallery() {
 
         <Section
           title="Notation"
-          note="Two notation files as collapsible documents: Roman sections with wrapped numbered lists, and uncaptioned clauses whose markers hang beside their copy. A link into either opens it; with one open on screen, ↑ and ↓ step through its units."
+          note="Two notation files, each one collapsible document: Roman sections with wrapped numbered lists, and uncaptioned clauses whose markers hang beside their copy."
         >
           <ShortcutHost />
           <Notation

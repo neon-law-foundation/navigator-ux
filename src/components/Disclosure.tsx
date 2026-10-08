@@ -26,8 +26,7 @@ export interface AccordionItem {
   /**
    * Open on first render. Maps to the `open` attribute, which React writes at
    * mount and re-applies only when this prop changes — so the reader opening and
-   * closing the section is not fought by a re-render. A link to the item, or to
-   * anything inside it, opens it regardless.
+   * closing the section is not fought by a re-render.
    */
   defaultOpen?: boolean
 }
