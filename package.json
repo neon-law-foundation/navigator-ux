@@ -29,13 +29,26 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "navigator-ux": "./dist/cli/navigator-ux.mjs"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./styles.css": "./dist/navigator-ux.css"
+    "./styles.css": "./dist/navigator-ux.css",
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.js",
+      "require": "./dist/testing/index.cjs"
+    },
+    "./testing/setup": {
+      "types": "./dist/testing/setup.d.ts",
+      "import": "./dist/testing/setup.js",
+      "require": "./dist/testing/setup.cjs"
+    }
   },
   "sideEffects": [
     "*.css"
@@ -49,7 +62,7 @@
     "build:gallery": "vite build --config vite.gallery.config.ts",
     "prebuild:pages": "pnpm generate:specimens",
     "build:pages": "GITHUB_PAGES=1 vite build --config vite.gallery.config.ts",
-    "build": "tsc --noEmit && vite build && node scripts/emit-font-layer.mjs",
+    "build": "tsc --noEmit && vite build && node scripts/emit-font-layer.mjs && node scripts/emit-cli.mjs",
     "lint": "oxlint",
     "typecheck": "tsc --noEmit",
     "check:tokens": "node scripts/check-no-literal-colors.mjs",
@@ -71,7 +84,21 @@
   },
   "peerDependencies": {
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "@testing-library/react": "^16.0.0",
+    "axe-core": "^4.10.0",
+    "vitest": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@testing-library/react": {
+      "optional": true
+    },
+    "axe-core": {
+      "optional": true
+    },
+    "vitest": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@faker-js/faker": "^10.6.0",
@@ -98,6 +125,7 @@
     "@types/topojson-specification": "^1.0.5",
     "@vitejs/plugin-react": "^6.1.1",
     "@vitest/coverage-v8": "^5.0.1",
+    "axe-core": "^4.14.0",
     "cypress": "^16.1.0",
     "jsdom": "^30.1.0",
     "openapi-typescript": "^7.13.0",

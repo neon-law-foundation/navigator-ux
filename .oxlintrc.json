@@ -27,6 +27,14 @@
       }
     },
     {
+      // The testing kit fails a test on `console.error`, so it wraps the
+      // console, and its tests call it to prove the wrapper works.
+      "files": ["src/testing/checks.ts", "src/test/testing-*.test.tsx"],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
       // These six subscribe to something outside React and seed state from it
       // on mount — a media query, a fetched session, a pdf.js document, a
       // force simulation. That is the one case `set-state-in-effect` says an

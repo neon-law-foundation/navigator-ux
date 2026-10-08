@@ -20,7 +20,8 @@
   --nav-color-on-brand: #ffffff;
   --nav-color-link: #446300;
   --nav-color-link-hover: #344d00;
-  --nav-color-surface-subtle: #e7efcf;
+  /* #d0202f (the library danger) on this band is 4.53:1; #e7efcf was 4.49:1. */
+  --nav-color-surface-subtle: #e8f0d1;
   --nav-color-focus: #446300;
   --nav-color-bg: #f0f1e9;
   --nav-color-surface: #ffffff;

@@ -21,9 +21,9 @@ not declare a workspace.
 
 | Path | What |
 | --- | --- |
-| `src/` | The library. `src/index.ts` is the published entry and is re-exports only. |
+| `src/` | The library. `src/index.ts` is the published entry and is re-exports only; `src/testing/` is the separate `./testing` entry, and `src/cli/` the `navigator-ux` bin. |
 | `gallery/` | The specimen page. A dev server, never published. |
-| `scripts/` | The check scripts (tokens, type, contrast, api, bundle) and the font-emit step. Each resolves its root as `scripts/..`. |
+| `scripts/` | The check scripts (tokens, type, contrast, api, bundle) and the font- and CLI-emit steps. Each resolves its root as `scripts/..`. The color, contrast, and bundle rules live in `src/cli/`, so the gates here and the consumer CLI run one implementation. |
 | `fixtures/` | The specimen-data generators. Not published, and outside `src/` so coverage does not grade them. |
 | `docs/` | Prose that does not belong in the README. |
 | `.agents/skills/` | The agent skills, and the only copy of them. |
@@ -129,7 +129,8 @@ server-rendered endpoint rather than parsing anything itself.
 used to be a byte-for-byte transcription of a client's stylesheet, kept frozen because changing a
 value moved live client pages. That constraint is gone. What replaced it is arithmetic: every pairing
 carries its measured contrast ratio, and `pnpm check:contrast` recomputes all 106 of them from the file
-and fails the build if one drops under its floor.
+— and again for each `gallery/brands/` sheet layered on it — and fails the build if one drops under
+its floor.
 
 That gate is not decoration. The first time it ran it found two status colors that had never cleared
 WCAG AA in any release — `#dc3545` at 4.29:1 and `#198754` at 4.30:1 on the raised surface a form
@@ -251,6 +252,20 @@ megabyte of inlined vendor code would bury the signal.
 What has *not* changed is the rule these replace. No Tailwind, no Radix, no CVA, no icon package,
 and nothing at all for a problem the platform already solves. A dependency here has to be a thing
 that would be irresponsible to write ourselves. `pdf.js` clears that bar; a dropdown menu does not.
+
+**`./testing` imports three packages it does not install, and declaring them is load-bearing.**
+`axe-core`, `vitest`, and `@testing-library/react` are optional `peerDependencies`, externalized like
+the rest. Optional, so an app that never adopts the setup file never installs axe. Declared at all,
+because pnpm links into this package's `node_modules` only what it declares: an undeclared `vitest`
+import resolves in this repository and fails from inside a consumer's install. `check:packed-consumer`
+is what would notice. axe-core is MPL-2.0; why that is compatible is in `THIRD-PARTY-NOTICES.md`.
+
+**The CLI is plain `.mjs` in `src/cli/`, not TypeScript, because two programs run it.** The gates in
+`scripts/` import it under bare `node` before anything is built, and `emit-cli.mjs` copies it into
+`dist` unchanged for the `navigator-ux` bin. Hand-written `.d.mts` files give the suite its types,
+as `fixtures/` does, and coverage includes `src/**/*.mjs` so it is graded like everything else. Do
+not write `new URL('…', import.meta.url)` in it: Vite rewrites that pattern into an asset URL under
+Vitest, and the module stops loading in the suite while still working in `dist`.
 
 **The shipped font is OFL, and the recommended one is not shipped at all.** `fonts.css` vendors
 Source Serif 4 at 400 and 700 — the Google Fonts latin subset, from `@fontsource/source-serif-4`,
