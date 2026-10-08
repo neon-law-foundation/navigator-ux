@@ -143,8 +143,9 @@
   /* The soft ring a control wears on focus: the border turns the focus color
      and this halo sits outside it. shadcn draws the halo at half strength,
      which measures 2.09:1 on white here — a focus indicator under the 3:1
-     non-text floor. Light therefore mixes it at 75% (3.16:1 on bg, 3.04:1 on
-     raised); dark already clears at 50%, below. */
+     non-text floor. Both schemes mix it at 75% (3.16:1 on bg, 3.04:1 on raised
+     in light; 6.35:1 and 5.47:1 in dark). Dark once kept shadcn's 50%, and six
+     gallery brands' dark focus colors fell under the floor at it. */
   --nav-color-focus-halo: color-mix(in srgb, var(--nav-color-focus) 75%, transparent);
   --nav-focus-halo: 0 0 0 0.1875rem var(--nav-color-focus-halo);
 
@@ -362,9 +363,6 @@
     --nav-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.40), 0 1px 2px -1px rgba(0, 0, 0, 0.40);
     --nav-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.45), 0 2px 4px -2px rgba(0, 0, 0, 0.45);
     --nav-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.52), 0 4px 6px -4px rgba(0, 0, 0, 0.52);
-
-    /* Measured 3.48:1 on bg, 3.27:1 on raised. */
-    --nav-color-focus-halo: color-mix(in srgb, var(--nav-color-focus) 50%, transparent);
 
     /* The tonal bands invert the same way primary does: a deep tint of the
        hue for the band, a light stop of it for the ink. The band itself sits

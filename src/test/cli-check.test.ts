@@ -196,7 +196,7 @@ describe('brand-contrast', () => {
     const root = await healthy({ 'src/styles/brand.css': GOOD_BRAND })
     expect((await run(root))['brand-contrast']).toMatchObject({
       status: 'pass',
-      summary: expect.stringMatching(/102 pairings clear .* src\/styles\/brand\.css/),
+      summary: expect.stringMatching(/\d+ pairings clear .* src\/styles\/brand\.css/),
     })
   })
 

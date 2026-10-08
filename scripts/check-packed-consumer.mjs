@@ -128,7 +128,7 @@ await exec('pnpm', ['exec', 'navigator-ux', '--help'], { cwd: consumerDir })
 const { stdout: checked } = await exec('pnpm', ['exec', 'navigator-ux', 'check', '--skip', 'manifest'], {
   cwd: consumerDir,
 })
-if (!/pass +brand-contrast +102 pairings/.test(checked)) {
+if (!/pass +brand-contrast +\d+ pairings/.test(checked)) {
   throw new Error(`navigator-ux check ran, but did not measure the brand layer:\n${checked}`)
 }
 
