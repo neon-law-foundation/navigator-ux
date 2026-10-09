@@ -1,6 +1,6 @@
 {
   "name": "@neon-law-source-code/navigator-ux",
-  "version": "26.10.8",
+  "version": "26.10.9",
   "description": "Navigator UX — a React component library for legal work, on the Neon Law teal.",
   "license": "Apache-2.0",
   "private": false,
